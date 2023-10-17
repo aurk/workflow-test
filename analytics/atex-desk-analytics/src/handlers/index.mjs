@@ -37,7 +37,7 @@ const generateSimpleReport = (response) => {
     )
   });
 
-    return result;  
+  return result;  
 }
 
 export const deskAnalytics = async (event) => {
