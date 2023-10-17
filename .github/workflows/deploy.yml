@@ -77,7 +77,7 @@ jobs:
           path: packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml
 
   deploy:
-    needs: [build-and-package]
+    needs: [build-package]
     strategy:
       matrix:
         type: ${{fromJson(inputs.matrix-type)}}
