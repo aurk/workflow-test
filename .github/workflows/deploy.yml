@@ -44,34 +44,34 @@ jobs:
           echo "${{ vars.REGION}}"
           echo "${{ matrix.execute-for }}"
       
-      # - uses: actions/checkout@v3
-      # - uses: aws-actions/setup-sam@v2
-      #   with:
-      #     use-installer: true
+      - uses: actions/checkout@v3
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
       
-      # - name: Build resources
-      #   run: sam build --template ${{matrix.type}}/${{vars.SAM_TEMPLATE}} --use-container
+      - name: Build resources
+        run: sam build --template ${{matrix.type}}/${{vars.SAM_TEMPLATE}} --use-container
 
-      # - name: Assume the testing pipeline user role
-      #   uses: aws-actions/configure-aws-credentials@v1-node16
-      #   with:
-      #     aws-access-key-id: ${{ env.access-key }}
-      #     aws-secret-access-key: ${{ env.secret-key }}
-      #     aws-region: ${{ vars.REGION }}
-      #     role-to-assume: ${{ vars.PIPELINE_EXECUTION_ROLE }}
-      #     role-session-name: ${{matrix.execute-for}}-packaging
-      #     role-duration-seconds: 3600
-      #     role-skip-session-tagging: true
+      - name: Assume the testing pipeline user role
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          aws-access-key-id: ${{ env.access-key }}
+          aws-secret-access-key: ${{ env.secret-key }}
+          aws-region: ${{ vars.REGION }}
+          role-to-assume: ${{ vars.PIPELINE_EXECUTION_ROLE }}
+          role-session-name: ${{matrix.execute-for}}-packaging
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
 
-      # - name: Upload artifacts to testing artifact buckets
-      #   run: |
-      #     sam package \
-      #       --s3-bucket ${ARTIFACTS_BUCKET} \
-      #       --region ${REGION} \
-      #       --s3-prefix ${{matrix.type}} \
-      #       --output-template-file packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml
+      - name: Upload artifacts to testing artifact buckets
+        run: |
+          sam package \
+            --s3-bucket ${ARTIFACTS_BUCKET} \
+            --region ${REGION} \
+            --s3-prefix ${{matrix.type}} \
+            --output-template-file packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml
 
-      # - uses: actions/upload-artifact@v3
-      #   with:
-      #     name: packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml
-      #     path: packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml
+      - uses: actions/upload-artifact@v3
+        with:
+          name: packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml
+          path: packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml
