@@ -22,20 +22,20 @@ const uploadResultInS3 = async (response, s3_destination, filename) => {
 
 const generateSimpleReport = (response) => {
   let result = [];
-      response.rows.forEach(row => {
-        result.push(
-          {
-            "ga:pagepath": row.dimensionValues[1].value,
-            "ga:dimension9": row.dimensionValues[0].value,
-            "ga:date": "" + row.dimensionValues[2].value,
-            "ga:dimension1": row.dimensionValues[3].value, 
-            "ga:dimension4": row.dimensionValues[4].value, 
-            "ga:pageviews": Number(row.metricValues[0].value), 
-            "ga:avgTimeOnPage": Number(row.metricValues[1].value), 
+  response.rows.forEach(row => {
+    result.push(
+      {
+        "ga:pagepath": row.dimensionValues[1].value,
+        "ga:dimension9": row.dimensionValues[0].value,
+        "ga:date": "" + row.dimensionValues[2].value,
+        "ga:dimension1": row.dimensionValues[3].value, 
+        "ga:dimension4": row.dimensionValues[4].value, 
+        "ga:pageviews": Number(row.metricValues[0].value), 
+        "ga:avgTimeOnPage": Number(row.metricValues[1].value), 
 
-          }
-        )
-    });
+      }
+    )
+  });
 
     return result;  
 }
