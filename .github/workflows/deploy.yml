@@ -47,6 +47,14 @@ jobs:
         with:
           verbose: true
 
+      - name: Setup AWS CLI
+        if: matrix.type != 'common'
+        uses: aws-actions/setup-aws-cli@v1
+        with:
+          aws-access-key-id: ${{ env.access-key }}
+          aws-secret-access-key: ${{ env.secret-key }}
+          aws-region: ${{ vars.REGION }}
+
       # - name: Modify template.yaml
       #   if: matrix.type != 'common'
       #   run: |
