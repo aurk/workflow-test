@@ -42,6 +42,7 @@ jobs:
 
       - name: install aws cli
         if: matrix.type != 'common'
+      - id: install-aws-cli
         uses: unfor19/install-aws-cli-action@v1
         with:
           verbose: true
