@@ -22,8 +22,7 @@ jobs:
       output_folder_names: ${{ steps.root-folders.outputs.output_folder_names }}
       is_common: ${{ steps.root-folders.outputs.is_common }}
       matrix_type: ${{ steps.root-folders.outputs.matrix_type }}
-      access-key: ${{ steps.root-folders.outputs.access_key }}
-      secret-key: ${{ steps.root-folders.outputs.secret_key }}
+      
     steps:
       - uses: actions/checkout@v3
         with:
@@ -48,8 +47,6 @@ jobs:
           root_folder_names=$(echo "$root_folder_names" | awk -F, -v OFS=', ' '{for(i=1; i<=NF; i++) $i = "\"" $i "\""}1')
           root_folder_names=$(echo ["$root_folder_names"])
           echo "output_folder_names=${root_folder_names}" >> $GITHUB_OUTPUT
-          echo "access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_OUTPUT
-          echo "secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_OUTPUT
 
   common:
     needs: fetch-changed-files
@@ -57,8 +54,10 @@ jobs:
     with:
       should-execute: ${{needs.fetch-changed-files.outputs.is_common}}
       matrix-type: ${{needs.fetch-changed-files.outputs.matrix_type}}
-      access-key: ${{needs.fetch-changed-files.outputs.access-key}}
-      secret-key: ${{needs.fetch-changed-files.outputs.secret-key}}
+      
+    secrets:
+      access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
+      secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
   # other:
   #   if: ${{ always() && !failure() && !cancelled() }} # when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok).
   #   needs: [common,fetch-changed-files]
