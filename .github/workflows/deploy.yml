@@ -17,7 +17,7 @@ on:
       access-key:
         required: true
       secret-key:      
-        type: string
+        required: true
 
 jobs:
   build-package:
