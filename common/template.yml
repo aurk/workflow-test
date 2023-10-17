@@ -1,0 +1,17 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform:
+- AWS::Serverless-2016-10-31
+Resources:
+  S3Layer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: SAM-Events-S3-Upload-Helper
+      Description: This is a helper layer for handling s3 objects.
+      ContentUri: ./s3-helper-layer/
+      CompatibleRuntimes:
+      - nodejs18.x
+    Metadata:
+      BuildArchitecture: x86_64
+      BuildMethod: makefile
+      SamResourceId: S3Layer
+  

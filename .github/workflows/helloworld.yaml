@@ -1,0 +1,68 @@
+name: hello-world
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - master
+  push:
+    branches:
+      - 'master'
+    # paths:
+    #   - '.github/workflow/*'
+
+
+
+jobs:
+  fetch-changed-files:
+    runs-on: ubuntu-latest
+    environment: testing
+    
+    outputs:
+      output_folder_names: ${{ steps.root-folders.outputs.output_folder_names }}
+      is_common: ${{ steps.root-folders.outputs.is_common }}
+      matrix_type: ${{ steps.root-folders.outputs.matrix_type }}
+      access-key: ${{ steps.root-folders.outputs.access_key }}
+      secret-key: ${{ steps.root-folders.outputs.secret_key }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: tj-actions/changed-files@v39
+        id: changed-files
+        with:
+          separator: ","
+
+      - name: Print all changed files
+        id: root-folders
+        run: |
+          echo "asad ${{vars.REGION}}  ${{ secrets.AWS_ACCESS_KEY_ID }}"
+          root_folder_names=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr "," "\n" | cut -d "/" -f 1  | sort -u | tr "\n" ",")
+          is_common=no
+          case "${root_folder_names[@]}" in  *"common"*) is_common=present ;; esac
+          echo "is_common=${is_common}" >> $GITHUB_OUTPUT
+          matrix_type=$(echo "[\"common\"]")
+          echo "matrix_type=${matrix_type}" >> $GITHUB_OUTPUT
+          root_folder_names=($(echo "$root_folder_names" | sed  "s/common//" |  sed 's/,,/,/g'  | sed 's/,$//'))
+          root_folder_names=$(echo "$root_folder_names" | awk -F, -v OFS=', ' '{for(i=1; i<=NF; i++) $i = "\"" $i "\""}1')
+          root_folder_names=$(echo ["$root_folder_names"])
+          echo "output_folder_names=${root_folder_names}" >> $GITHUB_OUTPUT
+          echo "access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_OUTPUT
+          echo "secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_OUTPUT
+
+  common:
+    needs: fetch-changed-files
+    uses: ./.github/workflows/deploy.yml
+    with:
+      should-execute: ${{needs.fetch-changed-files.outputs.is_common}}
+      matrix-type: ${{needs.fetch-changed-files.outputs.matrix_type}}
+      access-key: ${{needs.fetch-changed-files.outputs.access-key}}
+      secret-key: ${{needs.fetch-changed-files.outputs.secret-key}}
+  # other:
+  #   if: ${{ always() && !failure() && !cancelled() }} # when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok).
+  #   needs: [common,fetch-changed-files]
+  #   uses: ./.github/workflows/deploy.yml
+  #   with:
+  #     should-execute: present
+  #     matrix-type: ${{needs.fetch-changed-files.outputs.output_folder_names}}

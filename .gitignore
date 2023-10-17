@@ -1,0 +1,3 @@
+/common/.aws-sam
+/common/s3-helper-layer/node_modules
+/common/analytics-layer/node_modules

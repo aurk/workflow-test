@@ -1,0 +1,73 @@
+name: Package and Deploy
+
+on:
+  workflow_call:
+    inputs:
+      should-execute:
+        description: The name of the deployable artifact files
+        required: true
+        default: no
+        type: string
+      matrix-type:
+        description: Matrix type
+        required: true
+        default: "[\"common\"]"
+        type: string
+      access-key:
+        description: Access Key
+        required: true
+        type: string
+      secret-key:
+        description: Secret Key
+        required: true
+        type: string
+
+jobs:
+  build-package:
+    strategy:
+      matrix:
+        type: ${{fromJson(inputs.matrix-type)}}
+        execute-for: ["testing"]
+        exclude:
+          - type: .github
+
+    environment: ${{matrix.execute-for}}
+    
+    runs-on: ubuntu-latest
+    if: inputs.should-execute == 'present'
+    
+    steps:
+      - name: print secret
+        run: |
+          echo "${{ inputs.access-key }} ${{ vars.REGION}}"
+          echo "${{ inputs.secret-key }} ${{ matrix.execute-for }}"
+      
+      - uses: actions/checkout@v3
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+        run: sam build --template -${{matrix.type}}/${var.SAM_TEMPLATE} --use-container
+
+      - name: Assume the testing pipeline user role
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          aws-access-key-id: ${{ inputs.access-key }}
+          aws-secret-access-key: ${{ inputs.secret-key }}
+          aws-region: ${{ vars.REGION }}
+          role-to-assume: ${{ vars.PIPELINE_EXECUTION_ROLE }}
+          role-session-name: ${{matrix.execute-for}}-packaging
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Upload artifacts to testing artifact buckets
+        run: |
+          sam package \
+            --s3-bucket ${ARTIFACTS_BUCKET} \
+            --region ${REGION} \
+            --s3-prefix ${{matrix.type}} \
+            --output-template-file packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml
+          path: packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml
