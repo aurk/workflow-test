@@ -50,7 +50,7 @@ jobs:
           use-installer: true
 
       - name: Modify template.yaml
-        if: matrix.type != common
+        if: matrix.type != 'common'
         run: |
           # Use sed to modify template.yaml
           val=$(aws lambda list-layer-versions --layer-name SAM-S3-Upload-Helper --region ${{ vars.REGION }} --query 'LayerVersions[0].LayerVersionArn' | tr -d '"')
