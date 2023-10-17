@@ -12,6 +12,7 @@ Resources:
       Runtime: nodejs18.x
       Layers:
         - SAM-S3-Upload-Helper # <-- This is the Lambda layer name. It will be replaced so make sure provide correct name
+        - SAM-Analytics-Helpers # <-- This is the Lambda layer name. It will be replaced so make sure provide correct name
       Architectures:
       - x86_64
       CodeUri: ./atex-desk-analytics/

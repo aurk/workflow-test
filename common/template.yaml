@@ -14,4 +14,15 @@ Resources:
       BuildArchitecture: x86_64
       BuildMethod: makefile
       SamResourceId: S3Layer
-  
+  AnalyticsHelperLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: SAM-Analytics-Helpers
+      Description: Analytics helper layer code.
+      ContentUri: ./analytics-layer/
+      CompatibleRuntimes:
+      - nodejs18.x
+    Metadata:
+      BuildMethod: makefile
+      BuildArchitecture: x86_64
+      SamResourceId: AnalyticsHelperLayer
