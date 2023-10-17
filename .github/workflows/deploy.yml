@@ -45,6 +45,11 @@ jobs:
           echo "${{ matrix.execute-for }}"
       
       - uses: actions/checkout@v3
+      - id: install-aws-cli
+        uses: unfor19/install-aws-cli-action@v1
+        with:
+          verbose: true
+      - run: aws --version
 
       - name: Setup AWS CLI
         if: matrix.type != 'common'
