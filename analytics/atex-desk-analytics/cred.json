@@ -1,0 +1,12 @@
+{
+    "type": "service_account",
+    "project_id": "atex-analytics-gateway",
+    "private_key_id": "5c5c60413cdbd4614d68c0e9c980be4c48e326bb",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCuJx2tA6jred6L\niVjzmDPWiokk/mOiHa/eLltlTqkLEuNY2+WIjz6rY3X2z+WTDPq5ynFLftYVQJ2a\n6BqP6omnB/5+DWf6muPiZaavfaGHsnh4XCaKk/eou4gQpPibFMfWaqGPgNPENG3M\nMUjOHjNbledqdP8krdx3rkzBUCCUkOdFoiD7i7N7uBgRRJT108+SGkTqGXDoLkyS\njv6eS8Dtjm0dlcBzytNKhgt2ZZX/5p1w2FoUVOSaLM1CTt/D1GDBQ5QEk3XrXU5E\n7dcqMaWG2h0a5o9J8Bl3DT/COM/+G9XnVsSWLwJ2ZzDHbWUfZWVGiaLz1HQvmnmA\n1SZPNg0JAgMBAAECggEARa3N4FMWC307zw2ZowEzQHQ2cjA8UflZy+Y1WD/UP+OD\nRiLZYD2b//vwD1vYCXGIgbyffurVIjSzum6CbjGTeNqoduvLPggqBIPSYOW9surz\n64hHPWv9i6vYwXwYIgh6+m24jY+oaxjlE21mqV2JA+xi5oPAL/9GNjZtbG0wU/BL\nC5XUGHu1T84p4o6ulY+welToNEaJ5emcvPtF9Emc+YPXUwVhGW09aajBbnvg3jqq\nMseGdi0vc03Ph7ifVMq3b9xzYRif1VPh/OLiZX1iXTwTFIHSHVLqhoVil675y27H\nbDPiNP0+ButT6fOLoTV2311xtjrEK6e6+wTyvP2uDwKBgQDdILvS2Y0+o30Ci8U/\nm8b5Pt8focql5gz6/Cvcs57HaJQPWMd2/wMIXz3ZMee5POvPrPCmpzjiUtRe4Dsr\nD3lkUaE+v5mo4wlC2pkJpYj/tSjikf3A+OSktPdY70oPZOLyBeaEwwW4bTNh13Gh\nVXh2oQllqT8reWrJE6Y370V4XwKBgQDJne16ruAttOEYyPf84dN9NBuXYXCxeUXI\nLq4LYhYG1HwQbYNUmj4Y3iEv/szrZnIjLB9qdeoH7TsG1i1GTPmI3vPlQ1/nISOI\nvXgbnQ8BFlEfqVGOf9uiM1eFvX4Rd1gOFM7r/IrL/AnVg9RdkWCeLAHfHG3J8yv1\nWIfKkdMTlwKBgBw20wBCNd1qKscqYk6NZ8Phm8KDeEHWqo1To50TZgz3cPzMTRcH\nzrFAxblyvqhJ96SV4lbBO2bVPrekUKhb3xdHuxUwiUCdR086aRBsCKDn0oGmMwRu\nPW4ukOjOD1sLelF7I0CJSa+Qb1/qh1sYdrhcL8DC6YZ4hYGGekzkwK5tAoGAF48W\nsuFAXNbn/qdtIuWYeubd2oCOVI6hMtURjU721/F4VcsWL4qeevVp11vkwhUEfUuo\nmB4TLL3xyci5HZ/dALtcsIuA51cd+dp58HAX0r6y2ApG92nFVly9e2k7E/toFK0l\nyLmH1nIrDAINjKlyKsllppaB1blOh6rCo08K5R0CgYEAlFNmc4Zucu4hEN+aY6yW\njAdUi8Qs3k7Kcr9QKLzvySsfWA4RG+FbSC+89dyMHKpcRfMRyo3F+SkJ+8C+GsOk\ntjjYhK2ie46KFknEKagPOUFHSrdpv57BYJki/JJ3C1YdBYm0tKjzQjneot9qYxPA\nFeEBpSOxegEp596avprXqwk=\n-----END PRIVATE KEY-----\n",
+    "client_email": "ga-atex-proxy@atex-analytics-gateway.iam.gserviceaccount.com",
+    "client_id": "114432755018242816747",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/ga-atex-proxy%40atex-analytics-gateway.iam.gserviceaccount.com"
+  }

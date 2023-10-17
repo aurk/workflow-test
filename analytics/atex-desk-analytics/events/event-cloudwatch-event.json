@@ -1,0 +1,91 @@
+{
+  "id": "cdc73f9d-aea9-11e3-9d5a-835b769c0d9c",
+  "detail-type": "Scheduled Event",
+  "source": "aws.events",
+  "account": "",
+  "time": "1970-01-01T00:00:00Z",
+  "region": "us-west-2",
+  "resources": [
+    "arn:aws:events:us-west-2:123456789012:rule/ExampleRule"
+  ],
+  "detail": {},
+  "format": "simple",
+  "s3_destination":  "dev-test-atex.desk.analytics/google_analytics/",
+  "filename": "zawya_prod.json",
+  "query": {
+    "property": "properties/356215988",
+    "dateRanges": [
+      {
+        "startDate": "yesterday",
+        "endDate": "today"
+      }
+    ],
+    "dimensions": [
+      {
+        "name": "customEvent:onecmsid"
+      },
+      {
+        "name": "pagePath"
+      },
+      {
+        "name": "date"
+      },
+      {
+        "name": "customEvent:contentType"
+      },
+      {
+        "name": "customEvent:articleSection"
+      }
+    ],
+    "metrics": [
+      {
+        "name": "screenPageViews"
+      },
+      {
+        "name": "screenPageViewsPerSession"
+      }
+    ],
+    "limit": "2000",
+    "metricAggregations": [
+      "TOTAL"
+    ],
+    "orderBys": [
+      {
+        "metric": {
+          "metricName": "screenPageViews"
+        },
+        "desc": true
+      }
+    ]
+  },
+  "startDate": "yesterday",
+  "endDate": "yesterday",
+  "dimensionFilter": {
+    "orGroup": {
+      "expressions": [
+        {
+          "filter": {
+            "fieldName": "customEvent:contentType",
+            "inListFilter": {
+              "values": [
+                "Article",
+                "VideoObject",
+                "AudioObject"
+              ]
+            }
+          }
+        },
+        {
+          "filter": {
+            "fieldName": "hostName",
+            "stringFilter": {
+              "matchType": "EXACT",
+              "value": "www.zawya.com"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "limit": 2000
+}

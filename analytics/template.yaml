@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  sam-desk-analytics
+Transform:
+- AWS::Serverless-2016-10-31
+
+Resources:
+  DeskAnalyticsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Desk Analytics.
+      Runtime: nodejs18.x
+      Layers:
+        - SAM-S3-Upload-Helper # <-- This is the Lambda layer name. It will be replaced so make sure provide correct name
+      Architectures:
+      - x86_64
+      CodeUri: ./atex-desk-analytics/
+      Handler: src/handlers/index.deskAnalytics
+      Events:
+        CloudWatchEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 0 * * ? *) 
+      MemorySize: 128
+      Timeout: 100
+      Policies:
+        - S3FullAccessPolicy:
+            BucketName: dev-test-atex.desk.analytics
+  ApplicationResourceGroup:
+    Type: AWS::ResourceGroups::Group
+    Properties:
+      Name:
+        Fn::Sub: ApplicationInsights-SAM-${AWS::StackName}
+      ResourceQuery:
+        Type: CLOUDFORMATION_STACK_1_0
