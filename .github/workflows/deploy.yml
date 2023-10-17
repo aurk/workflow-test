@@ -39,10 +39,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: aws-actions/setup-sam@v2
+      with:
+          use-installer: true
 
       - name: install aws cli
         if: matrix.type != 'common'
-      - id: install-aws-cli
         uses: unfor19/install-aws-cli-action@v1
         with:
           verbose: true
@@ -65,9 +66,6 @@ jobs:
           sed -i s/SAM-S3-Upload-Helper/$val/ ${{matrix.type}}/template.yaml
           cat ${{matrix.type}}/template.yml
       
-      
-        with:
-          use-installer: true
 
       # - name: Build resources
       #   run: sam build --template ${{matrix.type}}/${{vars.SAM_TEMPLATE}} --use-container
