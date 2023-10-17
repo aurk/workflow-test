@@ -15,12 +15,8 @@ on:
         type: string
     secrets:
       access-key:
-        description: Access Key
         required: true
-        type: string
-      secret-key:
-        description: Secret Key
-        required: true
+      secret-key:      
         type: string
 
 jobs:
@@ -33,6 +29,9 @@ jobs:
           - type: .github
 
     environment: ${{matrix.execute-for}}
+    env:
+      access-key: ${{ env.access-key }}
+      secret-key: ${{ env.secret-key }}
     
     runs-on: ubuntu-latest
     if: inputs.should-execute == 'present'
@@ -40,8 +39,8 @@ jobs:
     steps:
       - name: print secret
         run: |
-          echo "${{ secrets.access-key }} ${{ vars.REGION}}"
-          echo "${{ secrets.secret-key }} ${{ matrix.execute-for }}"
+          echo "${{ env.access-key }} ${{ vars.REGION}}"
+          echo "${{ env.secret-key }} ${{ matrix.execute-for }}"
       
       - uses: actions/checkout@v3
       - uses: aws-actions/setup-sam@v2
@@ -54,8 +53,8 @@ jobs:
       - name: Assume the testing pipeline user role
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
-          aws-access-key-id: ${{ secrets.access-key }}
-          aws-secret-access-key: ${{ secrets.secret-key }}
+          aws-access-key-id: ${{ env.access-key }}
+          aws-secret-access-key: ${{ env.secret-key }}
           aws-region: ${{ vars.REGION }}
           role-to-assume: ${{ vars.PIPELINE_EXECUTION_ROLE }}
           role-session-name: ${{matrix.execute-for}}-packaging
