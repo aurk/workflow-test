@@ -6,12 +6,13 @@ const parseDimensionFilter = dimensionFilter => {
   if (dimensionFilter) {
     if(typeof dimensionFilter === 'object') {
       filterExpressions.push(dimensionFilter);
-    } else 
-    {
+    } else {
       const filters = dimensionFilter.split(",");
+      
       for (const filter of filters) {
         const match = filter.match(/^([^|]+)\|([^|]+)\|(.+)/)
         if (!match) continue
+      
         const fieldName = match[1]
         const matchType = match[2]
         const value = match[3]
@@ -39,6 +40,7 @@ const getClient = (credFile) => {
       keyFilename: credFile, //'./atex-desk-analytics/cred.json',
       scopes: 'https://www.googleapis.com/auth/analytics.readonly',
     });
+
   return new BetaAnalyticsDataClient({ auth });
 }
 
@@ -49,9 +51,11 @@ const getAnalyticsData =  (event, credFile) => async () => {
   const query = event.query;
   const andGroupExpressions = parseDimensionFilter(dimensionFilter);
   const notExpressions = parseDimensionFilter(dimensionFilterExclude);
+  
   for (const notExpression of notExpressions) {
     andGroupExpressions.push({ notExpression })
   }
+  
   if (andGroupExpressions.length > 0) {
     query.dimensionFilter = {
       "andGroup": {
@@ -61,10 +65,7 @@ const getAnalyticsData =  (event, credFile) => async () => {
   }
   
   const [response] = await getClient(credFile).runReport(query);
-
-
   return response;
-
 }
 
 export default getAnalyticsData;
