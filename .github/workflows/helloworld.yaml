@@ -58,13 +58,14 @@ jobs:
     secrets:
       access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
       secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
-  # other:
-  #   if: ${{ always() && !failure() && !cancelled() }} # when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok).
-  #   needs: [common,fetch-changed-files]
-  #   uses: ./.github/workflows/deploy.yml
-  #   with:
-  #     should-execute: present
-  #     matrix-type: ${{needs.fetch-changed-files.outputs.output_folder_names}}
-  #   secrets:
-  #     access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
-  #     secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
+ 
+  other:
+    if: ${{ always() && !failure() && !cancelled() }} # when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok).
+    needs: [common,fetch-changed-files]
+    uses: ./.github/workflows/deploy.yml
+    with:
+      should-execute: present
+      matrix-type: ${{needs.fetch-changed-files.outputs.output_folder_names}}
+    secrets:
+      access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
+      secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
