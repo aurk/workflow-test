@@ -42,14 +42,14 @@ jobs:
         with:
           use-installer: true
       - name: install aws cli
-        if: ${{matrix.type}} != common
+        if: ${{matrix.type}} != 'common'
         id: install-aws-cli
         uses: unfor19/install-aws-cli-action@v1
         with:
           verbose: true
 
       - name: authenticate aws cli
-        if: ${{matrix.type}} != common
+        if: ${{matrix.type}} != 'common'
         run: |
           aws configure set aws_access_key_id ${{ env.access-key }}
           aws configure set aws_secret_access_key ${{ env.secret-key }}
