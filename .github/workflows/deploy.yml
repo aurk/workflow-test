@@ -37,25 +37,18 @@ jobs:
     if: inputs.should-execute == 'present'
     
     steps:
+      - name: print secret
+        run: |
+          echo 'printing envs'
+          env
+          echo "${{ vars.REGION}}"
+          echo "${{ matrix.execute-for }}"
+      
       - uses: actions/checkout@v3
       - uses: aws-actions/setup-sam@v2
-      with:
+        with:
           use-installer: true
 
-      # - name: install aws cli
-      #   if: matrix.type != 'common'
-      #   uses: unfor19/install-aws-cli-action@v1
-      #   with:
-      #     verbose: true
-      
-      # - name: Setup AWS CLI
-      #   if: matrix.type != 'common'
-      #   uses: aws-actions/setup-aws-cli@v1
-      #   with:
-      #     aws-access-key-id: ${{ env.access-key }}
-      #     aws-secret-access-key: ${{ env.secret-key }}
-      #     aws-region: ${{ vars.REGION }}
-      
       # - name: Modify template.yaml
       #   if: matrix.type != 'common'
       #   run: |
@@ -64,9 +57,8 @@ jobs:
       #     sed -i s/SAM-Analytics-Helpers/$val/ ${{matrix.type}}/template.yaml
       #     val=$(aws lambda list-layer-versions --layer-name SAM-S3-Upload-Helper --region ${{ vars.REGION }} --query 'LayerVersions[0].LayerVersionArn' | tr -d '"')
       #     sed -i s/SAM-S3-Upload-Helper/$val/ ${{matrix.type}}/template.yaml
-      #     cat ${{matrix.type}}/template.yml
+      #     cat template.yml
       
-
       # - name: Build resources
       #   run: sam build --template ${{matrix.type}}/${{vars.SAM_TEMPLATE}} --use-container
 
