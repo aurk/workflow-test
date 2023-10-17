@@ -37,19 +37,15 @@ jobs:
     if: inputs.should-execute == 'present'
     
     steps:
-      - name: print secret
-        run: |
-          echo 'printing envs'
-          env
-          echo "${{ vars.REGION}}"
-          echo "${{ matrix.execute-for }}"
-      
-      - uses: actions/checkout@v3
-      - id: install-aws-cli
-        uses: unfor19/install-aws-cli-action@v1
-        with:
-          verbose: true
-      - run: aws --version
+      - name: install aws cli
+        if: matrix.type != 'common'
+        - uses: actions/checkout@v3
+        - uses: aws-actions/setup-sam@v2
+        - id: install-aws-cli
+          uses: unfor19/install-aws-cli-action@v1
+          with:
+            verbose: true
+        - run: aws --version
 
       - name: Setup AWS CLI
         if: matrix.type != 'common'
@@ -69,7 +65,7 @@ jobs:
           sed -i s/SAM-S3-Upload-Helper/$val/ ${{matrix.type}}/template.yaml
           cat ${{matrix.type}}/template.yml
       
-      - uses: aws-actions/setup-sam@v2
+      
         with:
           use-installer: true
 
