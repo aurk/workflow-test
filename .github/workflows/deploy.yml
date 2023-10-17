@@ -30,8 +30,8 @@ jobs:
 
     environment: ${{matrix.execute-for}}
     env:
-      access-key: ${{ env.access-key }}
-      secret-key: ${{ env.secret-key }}
+      access-key: ${{ secrets.access-key }}
+      secret-key: ${{ secrets.secret-key }}
     
     runs-on: ubuntu-latest
     if: inputs.should-execute == 'present'
