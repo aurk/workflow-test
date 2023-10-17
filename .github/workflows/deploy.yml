@@ -75,3 +75,50 @@ jobs:
         with:
           name: packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml
           path: packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml
+
+  deploy:
+    needs: [build-and-package]
+    strategy:
+      matrix:
+        type: ${{fromJson(inputs.matrix-type)}}
+        execute-for: ["testing"]
+        exclude:
+          - type: .github
+
+    environment: ${{matrix.execute-for}}
+    env:
+      access-key: ${{ secrets.access-key }}
+      secret-key: ${{ secrets.secret-key }}
+    
+    runs-on: ubuntu-latest
+    if: inputs.should-execute == 'present'
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+      - uses: actions/download-artifact@v3
+        with:
+          name: packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml
+
+      - name: Assume the testing pipeline user role
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          aws-access-key-id: ${{ env.access-key }}
+          aws-secret-access-key: ${{ env.secret-key }}
+          aws-region: ${{vars.REGION}}
+          role-to-assume: ${{ vars.PIPELINE_EXECUTION_ROLE }}
+          role-session-name: ${{matrix.execute-for}}-deployment
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Deploy to testing account
+        run: |
+          sam deploy --stack-name ${{vars.STACK_NAME}} \
+            --template packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml \
+            --capabilities CAPABILITY_IAM \
+            --region ${{vars.REGION}} \
+            --s3-bucket ${{ vars.ARTIFACTS_BUCKET}} \
+            --no-fail-on-empty-changeset \
+            --role-arn ${{ vars.CLOUDFORMATION_EXECUTION_ROLE}}
