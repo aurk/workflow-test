@@ -66,8 +66,8 @@ jobs:
       - name: Upload artifacts to testing artifact buckets
         run: |
           sam package \
-            --s3-bucket ${ARTIFACTS_BUCKET} \
-            --region ${REGION} \
+            --s3-bucket ${{vars.ARTIFACTS_BUCKET}} \
+            --region ${{vars.REGION}} \
             --s3-prefix ${{matrix.type}} \
             --output-template-file packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml
 
