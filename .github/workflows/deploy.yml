@@ -37,13 +37,6 @@ jobs:
     if: inputs.should-execute == 'present'
     
     steps:
-      - name: print secret
-        run: |
-          echo 'printing envs'
-          env
-          echo "${{ vars.REGION}}"
-          echo "${{ matrix.execute-for }}"
-      
       - uses: actions/checkout@v3
       - uses: aws-actions/setup-sam@v2
         with:
