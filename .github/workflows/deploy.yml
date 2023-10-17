@@ -62,7 +62,7 @@ jobs:
           sed -i s/SAM-Analytics-Helpers/$val/ ${{matrix.type}}/template.yaml
           val=$(aws lambda list-layer-versions --layer-name SAM-S3-Upload-Helper --region ${{ vars.REGION }} --query 'LayerVersions[0].LayerVersionArn' | tr -d '"')
           sed -i s/SAM-S3-Upload-Helper/$val/ ${{matrix.type}}/template.yaml
-          cat ${{matrix.type}}/template.yml
+          cat ${{matrix.type}}/template.yaml
       
       # - name: Build resources
       #   run: sam build --template ${{matrix.type}}/${{vars.SAM_TEMPLATE}} --use-container
