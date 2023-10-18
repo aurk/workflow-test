@@ -48,7 +48,7 @@ jobs:
           root_folder_names=$(echo ["$root_folder_names"])
           echo "output_folder_names=${root_folder_names}" >> $GITHUB_OUTPUT
           should_execute=no
-          if [ $(expr length "$a") -ge 1 ]; then
+          if [ ne(github.event.inputs.your_string, '') ]; then
             should_execute="present"
           fi
           echo "$output_folder_names"
