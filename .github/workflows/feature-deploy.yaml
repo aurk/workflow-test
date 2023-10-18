@@ -79,7 +79,7 @@ jobs:
         id: stack-name
         run: |
 
-          message=echo "\"${{ github.event.head_commit.message }}\""
+          message=$(echo "\"${{ github.event.head_commit.message }}\"")
           echo "message is $message"
           stack_name=$(echo "$(echo "$message" | sed 's/:.*//')-$type")
           echo "stack-name=${stack_name}" >> $GITHUB_OUTPUT
@@ -88,7 +88,7 @@ jobs:
       - name: set stacks for deleting purpose
         id: stacks-to-delete
         run: |
-          message=echo "\"${{ github.event.head_commit.message }}\""
+          message=$(echo "\"${{ github.event.head_commit.message }}\"")
           stack_initial=$(echo "$(echo "$message" | sed 's/:.*//')")
           stacks=$(aws cloudformation describe-stacks --query "Stacks[?starts_with(StackName, '$stack_inital')].[StackName]" --output text | tr "\n" ",")
           stacks=$(echo "$(echo "[\"$stacks" |   sed 's/,$//' | sed 's/,/\",\"/g')\"]")
@@ -98,7 +98,7 @@ jobs:
       - name: branch to delete inital
         id: branch-to-delete-initial 
         run: |
-          message=echo "\"${{ github.event.head_commit.message }}\""
+          message=$(echo "\"${{ github.event.head_commit.message }}\"")
           branch_to_delete_inital=$(echo "$(echo "$message" | sed 's/:.*//'):")
           echo "branch-to-delete-inital=${branch_to_delete_inital}" >> $GITHUB_OUTPUT
           
