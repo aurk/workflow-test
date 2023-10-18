@@ -22,7 +22,7 @@ jobs:
       output_folder_names: ${{ steps.root-folders.outputs.output_folder_names }}
       is_common: ${{ steps.root-folders.outputs.is_common }}
       matrix_type: ${{ steps.root-folders.outputs.matrix_type }}
-      should-execute: ${{ steps.root-folders.outputs.should_execute }}
+      should-execute: ${{ steps.root-folders.outputs.should-execute }}
       
     steps:
       - uses: actions/checkout@v3
@@ -78,7 +78,7 @@ jobs:
     needs: [common,fetch-changed-files]
     uses: ./.github/workflows/deploy.yml
     with:
-      should-execute: present
+      should-execute: ${{needs.fetch-changed-files.outputs.should-execute}}
       matrix-type: ${{needs.fetch-changed-files.outputs.output_folder_names}}
     secrets:
       access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
