@@ -68,7 +68,8 @@ jobs:
       - name: should execute lambda
         id: should-execute-lambda
         run: |
-          #Checking lambda should run or not
+          root_folder_names=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr "," "\n" | cut -d "/" -f 1  | sort -u | tr "\n" ",")
+          root_folder_names=($(echo "$root_folder_names" | sed  "s/common//" |  sed 's/,,/,/g'  | sed 's/,$//'))
           should_execute_lambda=present
           if [[ -z "$root_folder_names" ]]; then
             should_execute_lambda=no
