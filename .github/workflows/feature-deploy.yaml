@@ -42,15 +42,14 @@ jobs:
         id: set-root-folders
         run: |
           root_folder_names=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr "," "\n" | cut -d "/" -f 1  | sort -u | tr "\n" ",")
-          echo "1 $root_folder_names"
           root_folder_names=($(echo "$root_folder_names" | sed  "s/common//" |  sed 's/,,/,/g'  | sed 's/,$//'))
-          echo "2 $root_folder_names"
           root_folder_names=$(echo "$root_folder_names" | awk -F, -v OFS=', ' '{for(i=1; i<=NF; i++) $i = "\"" $i "\""}1')
-          echo "3 $root_folder_names"
           root_folder_names=$(echo ["$root_folder_names"])
-          echo "4 $root_folder_names"
           echo "output_folder_names=${root_folder_names}" >> $GITHUB_OUTPUT
+          
           echo "output_folder_names = $output_folder_names"
+          echo "output_folder_names = ${output_folder_names}"
+          echo "root_folder_names = $root_folder_names"
 
       # - name: is common layers changes
       #   id: common-layer-change
