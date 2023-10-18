@@ -48,8 +48,7 @@ jobs:
           root_folder_names=$(echo ["$root_folder_names"])
           echo "output_folder_names=${root_folder_names}" >> $GITHUB_OUTPUT
           should_execute=present
-          case "${root_folder_names[@]}" in  *"common"*) should_execute=no ;; esac
-          echo "$output_folder_names"
+          case "${root_folder_names[@]}" in  *""*) should_execute=no ;; esac
           echo "should execute is $should_execute"
 
   # common:
