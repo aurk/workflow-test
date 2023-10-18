@@ -22,6 +22,7 @@ jobs:
       output_folder_names: ${{ steps.root-folders.outputs.output_folder_names }}
       is_common: ${{ steps.root-folders.outputs.is_common }}
       matrix_type: ${{ steps.root-folders.outputs.matrix_type }}
+      should-execute: ${{ steps.root-folders.outputs.should_execute }}
       
     steps:
       - uses: actions/checkout@v3
@@ -49,26 +50,26 @@ jobs:
           echo "output_folder_names=${root_folder_names}" >> $GITHUB_OUTPUT
           should_execute=present
           case "${root_folder_names[@]}" in  *""*) should_execute=no ;; esac
-          echo "should execute is $should_execute"
+          echo "should-execute=${should_execute}" >> $GITHUB_OUTPUT
 
-  # common:
-  #   needs: fetch-changed-files
-  #   uses: ./.github/workflows/deploy.yml
-  #   with:
-  #     should-execute: ${{needs.fetch-changed-files.outputs.is_common}}
-  #     matrix-type: ${{needs.fetch-changed-files.outputs.matrix_type}}
+  common:
+    needs: fetch-changed-files
+    uses: ./.github/workflows/deploy.yml
+    with:
+      should-execute: ${{needs.fetch-changed-files.outputs.is_common}}
+      matrix-type: ${{needs.fetch-changed-files.outputs.matrix_type}}
       
-  #   secrets:
-  #     access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
-  #     secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
+    secrets:
+      access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
+      secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
  
-  # lambda:
-  #   if:   ${{ github.event.inputs.your_variable != '0' }} && ${{ always() && !failure() && !cancelled() }} # when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok).
-  #   needs: [common,fetch-changed-files]
-  #   uses: ./.github/workflows/deploy.yml
-  #   with:
-  #     should-execute: present
-  #     matrix-type: ${{needs.fetch-changed-files.outputs.output_folder_names}}
-  #   secrets:
-  #     access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
-  #     secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
+  lambda:
+    if:  {{ always() && !failure() && !cancelled() }} # when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok).
+    needs: [common,fetch-changed-files]
+    uses: ./.github/workflows/deploy.yml
+    with:
+      should-execute: ${{needs.fetch-changed-files.outputs.should-execute}}
+      matrix-type: ${{needs.fetch-changed-files.outputs.output_folder_names}}
+    secrets:
+      access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
+      secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
