@@ -22,7 +22,7 @@ jobs:
     outputs:
       output_folder_names: ${{ steps.set-root-folders.outputs.output_folder_names }}
       is_common: ${{ steps.common-layer-change.outputs.is_common }}
-      matrix_type: ${{ steps.matrix-common-layer.matrix_type }}
+      matrix_type: ${{ steps.matrix-common-layer.outputs.matrix_type }}
       should-execute: ${{ steps.should-execute-lambda.outputs.should-execute }}
       stacks-to-delete: ${{ steps.stacks-to-delete.outputs.stacks }}
       stack-name: ${{ steps.stack-name.outputs.stack-name }}
