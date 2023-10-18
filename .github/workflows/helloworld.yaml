@@ -48,8 +48,8 @@ jobs:
           root_folder_names=$(echo ["$root_folder_names"])
           echo "output_folder_names=${root_folder_names}" >> $GITHUB_OUTPUT
           should_execute=no
-          if [ ne(github.event.inputs.your_string, '') ]; then
-            should_execute="present"
+          if [ ne($output_folder_names, '') ]; then
+            should_execute=present
           fi
           echo "$output_folder_names"
           echo "should execute is $should_execute"
