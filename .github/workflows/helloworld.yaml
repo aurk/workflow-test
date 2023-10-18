@@ -47,25 +47,26 @@ jobs:
           root_folder_names=$(echo "$root_folder_names" | awk -F, -v OFS=', ' '{for(i=1; i<=NF; i++) $i = "\"" $i "\""}1')
           root_folder_names=$(echo ["$root_folder_names"])
           echo "output_folder_names=${root_folder_names}" >> $GITHUB_OUTPUT
+          echo "output folder names = $output_folder_names"
 
-  common:
-    needs: fetch-changed-files
-    uses: ./.github/workflows/deploy.yml
-    with:
-      should-execute: ${{needs.fetch-changed-files.outputs.is_common}}
-      matrix-type: ${{needs.fetch-changed-files.outputs.matrix_type}}
+  # common:
+  #   needs: fetch-changed-files
+  #   uses: ./.github/workflows/deploy.yml
+  #   with:
+  #     should-execute: ${{needs.fetch-changed-files.outputs.is_common}}
+  #     matrix-type: ${{needs.fetch-changed-files.outputs.matrix_type}}
       
-    secrets:
-      access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
-      secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
+  #   secrets:
+  #     access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
+  #     secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
  
-  other:
-    if: ${{ always() && !failure() && !cancelled() }} # when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok).
-    needs: [common,fetch-changed-files]
-    uses: ./.github/workflows/deploy.yml
-    with:
-      should-execute: present
-      matrix-type: ${{needs.fetch-changed-files.outputs.output_folder_names}}
-    secrets:
-      access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
-      secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
+  # lambda:
+  #   if: ${{ always() && !failure() && !cancelled() }} # when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok).
+  #   needs: [common,fetch-changed-files]
+  #   uses: ./.github/workflows/deploy.yml
+  #   with:
+  #     should-execute: present
+  #     matrix-type: ${{needs.fetch-changed-files.outputs.output_folder_names}}
+  #   secrets:
+  #     access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
+  #     secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
