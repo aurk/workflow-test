@@ -37,22 +37,27 @@ jobs:
       - name: Print all changed files
         id: root-folders
         run: |
-          echo "asad ${{vars.REGION}}  ${{ secrets.AWS_ACCESS_KEY_ID }}"
           root_folder_names=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr "," "\n" | cut -d "/" -f 1  | sort -u | tr "\n" ",")
+          
           is_common=no
           case "${root_folder_names[@]}" in  *"common"*) is_common=present ;; esac
           echo "is_common=${is_common}" >> $GITHUB_OUTPUT
+          
           matrix_type=$(echo "[\"common\"]")
           echo "matrix_type=${matrix_type}" >> $GITHUB_OUTPUT
+          
           root_folder_names=($(echo "$root_folder_names" | sed  "s/common//" |  sed 's/,,/,/g'  | sed 's/,$//'))
+          
+          should_execute=present
+          case "${root_folder_names[@]}" in  *""*) should_execute=no ;; esac
+          echo "should-execute = $should_execute"
+          echo "should-execute=${should_execute}" >> $GITHUB_OUTPUT
+
           root_folder_names=$(echo "$root_folder_names" | awk -F, -v OFS=', ' '{for(i=1; i<=NF; i++) $i = "\"" $i "\""}1')
           root_folder_names=$(echo ["$root_folder_names"])
           echo "output_folder_names=${root_folder_names}" >> $GITHUB_OUTPUT
-          should_execute=present
-          case "${root_folder_names[@]}" in  *""*) should_execute=no ;; esac
-          echo "should-execute=${should_execute}" >> $GITHUB_OUTPUT
+          
           echo "root_folder_names = $root_folder_names"
-          echo "should-execute = $should_execute"
 
   common:
     needs: fetch-changed-files
