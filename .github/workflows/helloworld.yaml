@@ -61,7 +61,7 @@ jobs:
       secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
  
   lambda:
-    if:  ${{needs.fetch-changed-files.outputs.output_folder_names}} != '' && ${{ always() && !failure() && !cancelled() }} # when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok).
+    if:  needs.fetch-changed-files.outputs.output_folder_names != '' && ${{ always() && !failure() && !cancelled() }} # when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok).
     needs: [common,fetch-changed-files]
     uses: ./.github/workflows/deploy.yml
     with:
