@@ -52,7 +52,7 @@ jobs:
           case "${root_folder_names[@]}" in  *""*) should_execute=no ;; esac
           echo "should-execute=${should_execute}" >> $GITHUB_OUTPUT
           echo "root_folder_names = $root_folder_names"
-          echo "should-execute = $should-execute"
+          echo "should-execute = $should_execute"
 
   common:
     needs: fetch-changed-files
