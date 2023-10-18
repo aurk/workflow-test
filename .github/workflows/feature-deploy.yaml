@@ -80,6 +80,7 @@ jobs:
         run: |
 
           message=${{ github.event.head_commit.message }}
+          echo ""
           stack_name=$(echo "$(echo "$message" | sed 's/:.*//')-$type")
           echo "stack-name=${stack_name}" >> $GITHUB_OUTPUT
           echo "stack_name = $stack_name"
