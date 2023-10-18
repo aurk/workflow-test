@@ -37,103 +37,107 @@ jobs:
     if: inputs.should-execute == 'present'
     
     steps:
-      - uses: actions/checkout@v3
-      - uses: aws-actions/setup-sam@v2
-        with:
-          use-installer: true
-      - name: install aws cli
-        if: matrix.type != 'common'
-        id: install-aws-cli
-        uses: unfor19/install-aws-cli-action@v1
-        with:
-          verbose: true
+        - name: print testing
+          run: |
+            echo "is present ${{inputs.should-execute}}"
 
-      - name: authenticate aws cli
-        if: matrix.type != 'common'
-        run: |
-          aws configure set aws_access_key_id ${{ env.access-key }}
-          aws configure set aws_secret_access_key ${{ env.secret-key }}
+  #     - uses: actions/checkout@v3
+  #     - uses: aws-actions/setup-sam@v2
+  #       with:
+  #         use-installer: true
+  #     - name: install aws cli
+  #       if: matrix.type != 'common'
+  #       id: install-aws-cli
+  #       uses: unfor19/install-aws-cli-action@v1
+  #       with:
+  #         verbose: true
 
-      - name: Modify template.yaml
-        if: matrix.type != 'common'
-        run: |
-          # Use sed to modify template.yaml
-          val=$(aws lambda list-layer-versions --layer-name SAM-Analytics-Helpers --region ${{ vars.REGION }} --query 'LayerVersions[0].LayerVersionArn' | tr -d '"')
-          sed -i s/SAM-Analytics-Helpers/$val/ ${{matrix.type}}/template.yaml
-          val=$(aws lambda list-layer-versions --layer-name SAM-S3-Upload-Helper --region ${{ vars.REGION }} --query 'LayerVersions[0].LayerVersionArn' | tr -d '"')
-          sed -i s/SAM-S3-Upload-Helper/$val/ ${{matrix.type}}/template.yaml
-          cat ${{matrix.type}}/template.yaml
+  #     - name: authenticate aws cli
+  #       if: matrix.type != 'common'
+  #       run: |
+  #         aws configure set aws_access_key_id ${{ env.access-key }}
+  #         aws configure set aws_secret_access_key ${{ env.secret-key }}
+
+  #     - name: Modify template.yaml
+  #       if: matrix.type != 'common'
+  #       run: |
+  #         # Use sed to modify template.yaml
+  #         val=$(aws lambda list-layer-versions --layer-name SAM-Analytics-Helpers --region ${{ vars.REGION }} --query 'LayerVersions[0].LayerVersionArn' | tr -d '"')
+  #         sed -i s/SAM-Analytics-Helpers/$val/ ${{matrix.type}}/template.yaml
+  #         val=$(aws lambda list-layer-versions --layer-name SAM-S3-Upload-Helper --region ${{ vars.REGION }} --query 'LayerVersions[0].LayerVersionArn' | tr -d '"')
+  #         sed -i s/SAM-S3-Upload-Helper/$val/ ${{matrix.type}}/template.yaml
+  #         cat ${{matrix.type}}/template.yaml
       
-      - name: Build resources
-        run: sam build --template ${{matrix.type}}/${{vars.SAM_TEMPLATE}} --use-container
+  #     - name: Build resources
+  #       run: sam build --template ${{matrix.type}}/${{vars.SAM_TEMPLATE}} --use-container
 
-      - name: Assume the testing pipeline user role
-        uses: aws-actions/configure-aws-credentials@v1-node16
-        with:
-          aws-access-key-id: ${{ env.access-key }}
-          aws-secret-access-key: ${{ env.secret-key }}
-          aws-region: ${{ vars.REGION }}
-          role-to-assume: ${{ vars.PIPELINE_EXECUTION_ROLE }}
-          role-session-name: ${{matrix.execute-for}}-packaging
-          role-duration-seconds: 3600
-          role-skip-session-tagging: true
+  #     - name: Assume the testing pipeline user role
+  #       uses: aws-actions/configure-aws-credentials@v1-node16
+  #       with:
+  #         aws-access-key-id: ${{ env.access-key }}
+  #         aws-secret-access-key: ${{ env.secret-key }}
+  #         aws-region: ${{ vars.REGION }}
+  #         role-to-assume: ${{ vars.PIPELINE_EXECUTION_ROLE }}
+  #         role-session-name: ${{matrix.execute-for}}-packaging
+  #         role-duration-seconds: 3600
+  #         role-skip-session-tagging: true
 
-      - name: Upload artifacts to testing artifact buckets
-        run: |
-          sam package \
-            --s3-bucket ${{vars.ARTIFACTS_BUCKET}} \
-            --region ${{vars.REGION}} \
-            --s3-prefix ${{matrix.type}} \
-            --output-template-file packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml
+  #     - name: Upload artifacts to testing artifact buckets
+  #       run: |
+  #         sam package \
+  #           --s3-bucket ${{vars.ARTIFACTS_BUCKET}} \
+  #           --region ${{vars.REGION}} \
+  #           --s3-prefix ${{matrix.type}} \
+  #           --output-template-file packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml
 
-      - uses: actions/upload-artifact@v3
-        with:
-          name: packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml
-          path: packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml
+  #     - uses: actions/upload-artifact@v3
+  #       with:
+  #         name: packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml
+  #         path: packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml
 
-  deploy:
-    needs: [build-package]
-    strategy:
-      matrix:
-        type: ${{fromJson(inputs.matrix-type)}}
-        execute-for: ["testing"]
-        exclude:
-          - type: .github
+  # deploy:
+  #   needs: [build-package]
+  #   strategy:
+  #     matrix:
+  #       type: ${{fromJson(inputs.matrix-type)}}
+  #       execute-for: ["testing"]
+  #       exclude:
+  #         - type: .github
 
-    environment: ${{matrix.execute-for}}
-    env:
-      access-key: ${{ secrets.access-key }}
-      secret-key: ${{ secrets.secret-key }}
+  #   environment: ${{matrix.execute-for}}
+  #   env:
+  #     access-key: ${{ secrets.access-key }}
+  #     secret-key: ${{ secrets.secret-key }}
     
-    runs-on: ubuntu-latest
-    if: inputs.should-execute == 'present'
+  #   runs-on: ubuntu-latest
+  #   if: inputs.should-execute == 'present'
 
-    steps:
-      - uses: actions/checkout@v3
-      - uses: aws-actions/setup-sam@v2
-        with:
-          use-installer: true
-      - uses: actions/download-artifact@v3
-        with:
-          name: packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: aws-actions/setup-sam@v2
+  #       with:
+  #         use-installer: true
+  #     - uses: actions/download-artifact@v3
+  #       with:
+  #         name: packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml
 
-      - name: Assume the testing pipeline user role
-        uses: aws-actions/configure-aws-credentials@v1-node16
-        with:
-          aws-access-key-id: ${{ env.access-key }}
-          aws-secret-access-key: ${{ env.secret-key }}
-          aws-region: ${{vars.REGION}}
-          role-to-assume: ${{ vars.PIPELINE_EXECUTION_ROLE }}
-          role-session-name: ${{matrix.execute-for}}-deployment
-          role-duration-seconds: 3600
-          role-skip-session-tagging: true
+  #     - name: Assume the testing pipeline user role
+  #       uses: aws-actions/configure-aws-credentials@v1-node16
+  #       with:
+  #         aws-access-key-id: ${{ env.access-key }}
+  #         aws-secret-access-key: ${{ env.secret-key }}
+  #         aws-region: ${{vars.REGION}}
+  #         role-to-assume: ${{ vars.PIPELINE_EXECUTION_ROLE }}
+  #         role-session-name: ${{matrix.execute-for}}-deployment
+  #         role-duration-seconds: 3600
+  #         role-skip-session-tagging: true
 
-      - name: Deploy to testing account
-        run: |
-          sam deploy --stack-name ${{matrix.type}}-${{vars.STACK_NAME}} \
-            --template packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml \
-            --capabilities CAPABILITY_IAM \
-            --region ${{vars.REGION}} \
-            --s3-bucket ${{ vars.ARTIFACTS_BUCKET}} \
-            --no-fail-on-empty-changeset \
-            --role-arn ${{ vars.CLOUDFORMATION_EXECUTION_ROLE}}
+  #     - name: Deploy to testing account
+  #       run: |
+  #         sam deploy --stack-name ${{matrix.type}}-${{vars.STACK_NAME}} \
+  #           --template packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml \
+  #           --capabilities CAPABILITY_IAM \
+  #           --region ${{vars.REGION}} \
+  #           --s3-bucket ${{ vars.ARTIFACTS_BUCKET}} \
+  #           --no-fail-on-empty-changeset \
+  #           --role-arn ${{ vars.CLOUDFORMATION_EXECUTION_ROLE}}
