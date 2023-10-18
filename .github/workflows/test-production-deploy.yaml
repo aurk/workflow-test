@@ -1,4 +1,4 @@
-name: hello-world
+name: test-production-deploy
 on:
   pull_request:
     types:
