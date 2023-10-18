@@ -13,6 +13,13 @@ on:
         required: true
         default: "[\"common\"]"
         type: string
+      stack-initial:
+        description: Stack initial
+        required: true
+        type: string
+      profile:
+        required: true
+        type: string
     secrets:
       access-key:
         required: true
@@ -24,7 +31,7 @@ jobs:
     strategy:
       matrix:
         type: ${{fromJson(inputs.matrix-type)}}
-        execute-for: ["testing"]
+        execute-for: ${{fromJson(inputs.profile)}}
         exclude:
           - type: .github
 
@@ -37,6 +44,10 @@ jobs:
     if: inputs.should-execute == 'present'
     
     steps:
+      # - name: print vars
+      #   run: |
+      #     echo "stack-initial = ${{inputs.stack-initial}}"
+      #     echo "profile = ${{inputs.profile}}"
       - uses: actions/checkout@v3
       - uses: aws-actions/setup-sam@v2
         with:
@@ -96,7 +107,7 @@ jobs:
     strategy:
       matrix:
         type: ${{fromJson(inputs.matrix-type)}}
-        execute-for: ["testing"]
+        execute-for: ${{fromJson(inputs.profile)}}
         exclude:
           - type: .github
 
@@ -130,7 +141,7 @@ jobs:
 
       - name: Deploy to testing account
         run: |
-          sam deploy --stack-name ${{matrix.type}}-${{vars.STACK_NAME}} \
+          sam deploy --stack-name ${{inputs.stack-initial}}-${{matrix.type}}-${{vars.STACK_NAME}} \
             --template packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml \
             --capabilities CAPABILITY_IAM \
             --region ${{vars.REGION}} \

@@ -1,0 +1,182 @@
+name: feature-deploy
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - master
+  push:
+    branches:
+      - '*'
+      - '!master'
+    paths-ignore:
+      - '.github/workflow/*'
+
+
+
+jobs:
+  pre-processor:
+    runs-on: ubuntu-latest
+    environment: testing
+    
+    outputs:
+      output_folder_names: ${{ steps.set-root-folders.outputs.output_folder_names }}
+      is_common: ${{ steps.common-layer-change.outputs.is_common }}
+      matrix_type: ${{ steps.matrix-common-layer.outputs.matrix_type }}
+      should-execute: ${{ steps.should-execute-lambda.outputs.should-execute }}
+      stacks-to-delete: ${{ steps.stacks-to-delete.outputs.stacks }}
+      stack-name: ${{ steps.stack-name.outputs.stack-name }}
+      branch-to-delete-initial: ${{ steps.branch-to-delete-initial.outputs.branch-to-delete-initial }}
+      profile: ${{ steps.set-profile.outputs.profile }}
+      
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: tj-actions/changed-files@v39
+        id: changed-files
+        with:
+          separator: ","
+      - name: find all changed files
+        id: set-root-folders
+        run: |
+          root_folder_names=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr "," "\n" | cut -d "/" -f 1  | sort -u | tr "\n" ",")
+          root_folder_names=($(echo "$root_folder_names" | sed  "s/common//" |  sed 's/,,/,/g'  | sed 's/,$//'))
+          root_folder_names=$(echo "$root_folder_names" | awk -F, -v OFS=', ' '{for(i=1; i<=NF; i++) $i = "\"" $i "\""}1')
+          root_folder_names=$(echo ["$root_folder_names"])
+          echo "output_folder_names=${root_folder_names}" >> $GITHUB_OUTPUT
+          
+      - name: is common layers changes
+        id: common-layer-change
+        run: |
+          root_folder_names=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr "," "\n" | cut -d "/" -f 1  | sort -u | tr "\n" ",")
+          is_common=no
+          case "${root_folder_names[@]}" in  *"common"*) is_common=present ;; esac
+          echo "is_common=${is_common}" >> $GITHUB_OUTPUT
+          echo "is_common = $is_common"
+      
+      - name: set matrix for common layer
+        id: matrix-common-layer
+        run: |
+          #setting matrix type to common because If we change common-layers. We want it should execute first.
+          matrix_type=$(echo "[\"common\"]")
+          echo "matrix_type=${matrix_type}" >> $GITHUB_OUTPUT
+          echo "matrix_type = $matrix_type"
+
+
+      - name: should execute lambda
+        id: should-execute-lambda
+        run: |
+          root_folder_names=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr "," "\n" | cut -d "/" -f 1  | sort -u | tr "\n" ",")
+          root_folder_names=($(echo "$root_folder_names" | sed  "s/common//" |  sed 's/,,/,/g'  | sed 's/,$//'))
+          should_execute_lambda=present
+          if [[ -z "$root_folder_names" ]]; then
+            should_execute_lambda=no
+          fi
+          echo "should-execute = $should_execute_lambda"
+          echo "should-execute=${should_execute_lambda}" >> $GITHUB_OUTPUT
+          echo "should_execute_lambda = $should_execute_lambda"
+        
+      - name: set stack initial
+        id: stack-name
+        run: |
+
+          message=$(echo "\"${{ github.event.head_commit.message }}\"")
+          message=${message#\"}
+          echo "message is $message"
+          stack_name=$(echo "$(echo "$message" | sed 's/:.*//')-$type")
+          echo "stack-name=${stack_name}" >> $GITHUB_OUTPUT
+          echo "stack_name = $stack_name"
+
+      - name: set stacks for deleting purpose
+        id: stacks-to-delete
+        run: |
+          message=$(echo "\"${{ github.event.head_commit.message }}\"")
+          stack_initial=$(echo "$(echo "$message" | sed 's/:.*//')")
+          stacks=$(aws cloudformation describe-stacks --query "Stacks[?starts_with(StackName, '$stack_inital')].[StackName]" --output text | tr "\n" ",")
+          stacks=$(echo "$(echo "[\"$stacks" |   sed 's/,$//' | sed 's/,/\",\"/g')\"]")
+          echo "stacks=${stacks}" >> $GITHUB_OUTPUT
+          echo "stacks = $stacks"
+
+      - name: branch to delete inital
+        id: branch-to-delete-initial 
+        run: |
+          message=$(echo "\"${{ github.event.head_commit.message }}\"")
+          branch_to_delete_initial=$(echo "$(echo "$message" | sed 's/:.*//'):")
+          echo "branch-to-delete-initial=${branch_to_delete_initial}" >> $GITHUB_OUTPUT
+          
+          echo "branch_to_delete_initial = $branch_to_delete_initial"
+
+      - name: set profile
+        id: set-profile 
+        run: |
+          profile=$(echo "[\"feature\"]")
+          echo "profile=${profile}" >> $GITHUB_OUTPUT
+          
+          echo "profile = $profile"
+
+
+
+
+
+  delete-feature:
+    if: github.event_name == 'delete'
+    strategy:
+      matrix:
+        to-delete: ${{needs.pre-processor.outputs.stacks-to-delete}}
+    runs-on: ubuntu-latest
+    environment: ${{needs.pre-processor.outputs.profile}}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
+      - name: Assume the testing pipeline user role
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.REGION }}
+          role-to-assume: ${{ vars.PIPELINE_EXECUTION_ROLE }}
+          role-session-name: testing-packaging
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Delete feature branch stack
+        env:
+          FEATURE_BRANCH_NAME: ${{ github.event.ref }}
+        run: |
+          sam delete \
+            --stack-name ${{matrix.to-delete}} \
+            --region ${{vars.REGION}} \
+            --no-prompts
+          
+
+
+  common:
+    needs: pre-processor
+    uses: ./.github/workflows/deploy.yml
+    with:
+      should-execute: ${{needs.pre-processor.outputs.is_common}}
+      matrix-type: ${{needs.pre-processor.outputs.matrix_type}}
+      stack-initial: ${{needs.pre-processor.outputs.stack-name}}
+      profile: "[\"feature\"]"
+      
+    secrets:
+      access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
+      secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
+ 
+  lambda:
+    if:  always() && !failure() && !cancelled() # when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok).
+    needs: [common,pre-processor]
+    uses: ./.github/workflows/deploy.yml
+    with:
+      should-execute: ${{needs.pre-processor.outputs.should-execute}}
+      matrix-type: ${{needs.pre-processor.outputs.output_folder_names}}
+      stack-initial: ${{needs.pre-processor.outputs.stack-name}}
+      profile: ${{needs.pre-processor.outputs.profile}}
+    secrets:
+      access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
+      secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
