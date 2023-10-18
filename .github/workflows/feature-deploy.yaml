@@ -83,6 +83,7 @@ jobs:
         run: |
 
           message=$(echo "\"${{ github.event.head_commit.message }}\"")
+          message=${message#\"}
           echo "message is $message"
           stack_name=$(echo "$(echo "$message" | sed 's/:.*//')-$type")
           echo "stack-name=${stack_name}" >> $GITHUB_OUTPUT
