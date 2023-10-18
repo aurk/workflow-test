@@ -47,7 +47,7 @@ jobs:
 
       - name: is common layers changes
         id: common-layer-change
-        run |
+        run: |
           root_folder_names=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr "," "\n" | cut -d "/" -f 1  | sort -u | tr "\n" ",")
           is_common=no
           case "${root_folder_names[@]}" in  *"common"*) is_common=present ;; esac
