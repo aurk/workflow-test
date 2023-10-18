@@ -130,7 +130,7 @@ jobs:
 
       - name: Deploy to testing account
         run: |
-          sam deploy --stack-name ${{vars.STACK_NAME}} \
+          sam deploy --stack-name ${{matrix.type}}-${{vars.STACK_NAME}} \
             --template packaged-${{matrix.execute-for}}-${{matrix.type}}.yaml \
             --capabilities CAPABILITY_IAM \
             --region ${{vars.REGION}} \
