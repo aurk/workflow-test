@@ -15,16 +15,18 @@ on:
 
 
 jobs:
-  fetch-changed-files:
+  pre-processor:
     runs-on: ubuntu-latest
     environment: testing
     
     outputs:
-      output_folder_names: ${{ steps.root-folders.outputs.output_folder_names }}
-      is_common: ${{ steps.root-folders.outputs.is_common }}
-      matrix_type: ${{ steps.root-folders.outputs.matrix_type }}
-      should-execute: ${{ steps.root-folders.outputs.should-execute }}
-      stack-name: ${{ steps.root-folders.outputs.stack-name }}
+      output_folder_names: ${{ steps.set-root-folders.outputs.output_folder_names }}
+      is_common: ${{ steps.common-layer-change.outputs.is_common }}
+      matrix_type: ${{ steps.root-matrix-common-layer.matrix_type }}
+      should-execute: ${{ steps.should-execute-lambda.outputs.should-execute }}
+      stacks-to-delete: ${{ steps.stacks-to-delete.outputs.stacks }}
+      stack-name: ${{ steps.stack-name.outputs.stack-name }}
+      branch-to-delete-initial: ${{ steps.branch-to-delete-initial.outputs.branch-to-delete-initial }}
       
     steps:
       - uses: actions/checkout@v3
@@ -99,17 +101,17 @@ jobs:
         id: branch-to-delete-initial 
         run: |
           message=$(echo "\"${{ github.event.head_commit.message }}\"")
-          branch_to_delete_inital=$(echo "$(echo "$message" | sed 's/:.*//'):")
-          echo "branch-to-delete-inital=${branch_to_delete_inital}" >> $GITHUB_OUTPUT
+          branch_to_delete_initial=$(echo "$(echo "$message" | sed 's/:.*//'):")
+          echo "branch-to-delete-initial=${branch_to_delete_initial}" >> $GITHUB_OUTPUT
           
-          echo "branch_to_delete_inital = $branch_to_delete_inital"
+          echo "branch_to_delete_initial = $branch_to_delete_initial"
 
 
 
 
 
   # delete-feature:
-  #   if: startsWith(github.event.ref, 'feature') && github.event_name == 'delete'
+  #   if: github.event_name == 'delete'
   #   runs-on: ubuntu-latest
   #   steps:
   #     - uses: actions/checkout@v3
@@ -137,24 +139,30 @@ jobs:
   #           --region ${TESTING_REGION} \
   #           --no-prompts
           
-  # common:
-  #   needs: fetch-changed-files
-  #   uses: ./.github/workflows/deploy.yml
-  #   with:
-  #     should-execute: ${{needs.fetch-changed-files.outputs.is_common}}
-  #     matrix-type: ${{needs.fetch-changed-files.outputs.matrix_type}}
+
+
+  common:
+    needs: pre-processor
+    uses: ./.github/workflows/deploy.yml
+    with:
+      should-execute: ${{needs.pre-processor.outputs.is_common}}
+      matrix-type: ${{needs.pre-processor.outputs.matrix_type}}
+      stack-initial: ${{needs.pre-processor.outputs.stack-name}}
+      profile: "[\"feature\"]"
       
-  #   secrets:
-  #     access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
-  #     secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
+    secrets:
+      access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
+      secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
  
-  # lambda:
-  #   if:  always() && !failure() && !cancelled() # when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok).
-  #   needs: [common,fetch-changed-files]
-  #   uses: ./.github/workflows/deploy.yml
-  #   with:
-  #     should-execute: ${{needs.fetch-changed-files.outputs.should-execute}}
-  #     matrix-type: ${{needs.fetch-changed-files.outputs.output_folder_names}}
-  #   secrets:
-  #     access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
-  #     secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
+  lambda:
+    if:  always() && !failure() && !cancelled() # when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok).
+    needs: [common,pre-processor]
+    uses: ./.github/workflows/deploy.yml
+    with:
+      should-execute: ${{needs.pre-processor.outputs.should-execute}}
+      matrix-type: ${{needs.pre-processor.outputs.output_folder_names}}
+      stack-initial: ${{needs.pre-processor.outputs.stack-name}}
+      profile: "[\"feature\"]"
+    secrets:
+      access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
+      secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
