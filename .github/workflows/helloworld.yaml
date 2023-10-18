@@ -47,10 +47,8 @@ jobs:
           root_folder_names=$(echo "$root_folder_names" | awk -F, -v OFS=', ' '{for(i=1; i<=NF; i++) $i = "\"" $i "\""}1')
           root_folder_names=$(echo ["$root_folder_names"])
           echo "output_folder_names=${root_folder_names}" >> $GITHUB_OUTPUT
-          should_execute=no
-          if [ ne($output_folder_names, '') ]; then
-            should_execute=present
-          fi
+          should_execute=present
+          case "${root_folder_names[@]}" in  *"common"*) should_execute=no ;; esac
           echo "$output_folder_names"
           echo "should execute is $should_execute"
 
