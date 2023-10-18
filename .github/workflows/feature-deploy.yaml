@@ -27,6 +27,7 @@ jobs:
       stacks-to-delete: ${{ steps.stacks-to-delete.outputs.stacks }}
       stack-name: ${{ steps.stack-name.outputs.stack-name }}
       branch-to-delete-initial: ${{ steps.branch-to-delete-initial.outputs.branch-to-delete-initial }}
+      profile: ${{ steps.set-profile.outputs.profile }}
       
     steps:
       - uses: actions/checkout@v3
@@ -106,6 +107,14 @@ jobs:
           
           echo "branch_to_delete_initial = $branch_to_delete_initial"
 
+      - name: set profile
+        id: set-profile 
+        run: |
+          profile=$(echo "[\"feature\"]")
+          echo "profile=${profile}" >> $GITHUB_OUTPUT
+          
+          echo "profile = $profile"
+
 
 
 
@@ -162,7 +171,7 @@ jobs:
       should-execute: ${{needs.pre-processor.outputs.should-execute}}
       matrix-type: ${{needs.pre-processor.outputs.output_folder_names}}
       stack-initial: ${{needs.pre-processor.outputs.stack-name}}
-      profile: "[\"feature\"]"
+      profile: ${{needs.pre-processor.outputs.profile}}
     secrets:
       access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
       secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
