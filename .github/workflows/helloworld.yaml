@@ -48,6 +48,7 @@ jobs:
           
           root_folder_names=($(echo "$root_folder_names" | sed  "s/common//" |  sed 's/,,/,/g'  | sed 's/,$//'))
           
+          echo "$root_folder_names"
           should_execute=present
           case "${root_folder_names[@]}" in  *""*) should_execute=no ;; esac
           echo "should-execute = $should_execute"
