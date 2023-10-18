@@ -78,7 +78,7 @@ jobs:
     needs: [common,fetch-changed-files]
     uses: ./.github/workflows/deploy.yml
     with:
-      should-execute: ${{needs.fetch-changed-files.outputs.should-execute}}
+      should-execute: present
       matrix-type: ${{needs.fetch-changed-files.outputs.output_folder_names}}
     secrets:
       access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
