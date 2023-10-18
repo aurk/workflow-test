@@ -50,7 +50,7 @@ jobs:
           root_folder_names=($(echo "$root_folder_names" | sed  "s/common//" |  sed 's/,,/,/g'  | sed 's/,$//'))
           
           #Checking lambda should run or not
-          should_execute_lambda=present
+          should_execute_lambda='present'
           if [[ -z "$root_folder_names" ]]; then
             should_execute_lambda="no"
           fi
