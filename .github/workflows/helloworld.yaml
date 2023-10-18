@@ -47,7 +47,12 @@ jobs:
           root_folder_names=$(echo "$root_folder_names" | awk -F, -v OFS=', ' '{for(i=1; i<=NF; i++) $i = "\"" $i "\""}1')
           root_folder_names=$(echo ["$root_folder_names"])
           echo "output_folder_names=${root_folder_names}" >> $GITHUB_OUTPUT
-          
+          should_execute=no
+          if [ $(expr length "$a") -ge 1 ]; then
+            should_execute="present"
+          fi
+          echo "$output_folder_names"
+          echo "should execute is $should_execute"
 
   # common:
   #   needs: fetch-changed-files
