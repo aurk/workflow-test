@@ -8,8 +8,8 @@ on:
   push:
     branches:
       - 'master'
-    # paths:
-    #   - '.github/workflow/*'
+    paths:
+      - '.github/workflow/*'
 
 
 
