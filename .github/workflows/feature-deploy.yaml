@@ -188,8 +188,6 @@ jobs:
       #       --region ${{vars.REGION}} \
       #       --no-prompts
           
-
-
   common:
     needs: pre-processor
     uses: ./.github/workflows/deploy.yml
