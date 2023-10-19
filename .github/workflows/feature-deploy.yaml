@@ -17,7 +17,7 @@ on:
 jobs:
   pre-processor:
     runs-on: ubuntu-latest
-    environment: testing
+    environment: feature
     
     outputs:
       output_folder_names: ${{ steps.set-root-folders.outputs.output_folder_names }}
@@ -101,12 +101,9 @@ jobs:
         run: |
           aws configure set aws_access_key_id ${{secrets.AWS_ACCESS_KEY_ID }}
           aws configure set aws_secret_access_key ${{secrets.AWS_SECRET_ACCESS_KEY }}
+          aws configure set default.region ${{vars.REGION}}
 
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
-
+      
       - name: set stacks for deleting purpose
         if: github.event_name == 'pull_request'
         id: stacks-to-delete
