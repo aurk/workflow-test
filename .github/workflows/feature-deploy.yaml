@@ -111,7 +111,7 @@ jobs:
         if: github.event_name == 'pull_request'
         id: stacks-to-delete
         run: |
-          message=$(echo "\"${{ github.event.pull_request.head.sha }}\"")
+          message=$(echo "\"${{ github.event.pull_request.title }}\"")
           echo "message = $message"
           stack_initial=$(echo "$(echo "$message" | sed 's/:.*//')")
           echo "stack_initial = $stack_initial"
@@ -125,7 +125,7 @@ jobs:
         id: branch-to-delete-initial 
         if: github.event_name == 'pull_request'
         run: |
-          message=$(echo "\"${{ github.event.pull_request.head.sha }}\"")
+          message=$(echo "\"${{ github.event.pull_request.title }}\"")
           branch_to_delete_initial=$(echo "$(echo "$message" | sed 's/:.*//'):")
           echo "branch-to-delete-initial=${branch_to_delete_initial}" >> $GITHUB_OUTPUT
           
