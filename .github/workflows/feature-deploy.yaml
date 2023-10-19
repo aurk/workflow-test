@@ -150,7 +150,7 @@ jobs:
     needs: pre-processor
     strategy:
       matrix:
-        to-delete: ${{needs.pre-processor.outputs.stacks-to-delete}}
+        to-delete: ${{fromJson(needs.pre-processor.outputs.stacks-to-delete))}}
     runs-on: ubuntu-latest
     environment: ${{needs.pre-processor.outputs.profile}}
     steps:
@@ -160,30 +160,30 @@ jobs:
           echo "${{needs.pre-processor.outputs.profile}}"
           echo "${{github.event_name}}"
 
-      # - uses: actions/checkout@v3
-      # - uses: aws-actions/setup-sam@v2
-      #   with:
-      #     use-installer: true
+      - uses: actions/checkout@v3
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
 
-      # - name: Assume the testing pipeline user role
-      #   uses: aws-actions/configure-aws-credentials@v1-node16
-      #   with:
-      #     aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID }}
-      #     aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: ${{ vars.REGION }}
-      #     role-to-assume: ${{ vars.PIPELINE_EXECUTION_ROLE }}
-      #     role-session-name: testing-packaging
-      #     role-duration-seconds: 3600
-      #     role-skip-session-tagging: true
+      - name: Assume the testing pipeline user role
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.REGION }}
+          role-to-assume: ${{ vars.PIPELINE_EXECUTION_ROLE }}
+          role-session-name: testing-packaging
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
 
-      # - name: Delete feature branch stack
-      #   env:
-      #     FEATURE_BRANCH_NAME: ${{ github.event.ref }}
-      #   run: |
-      #     sam delete \
-      #       --stack-name ${{matrix.to-delete}} \
-      #       --region ${{vars.REGION}} \
-      #       --no-prompts
+      - name: Delete feature branch stack
+        env:
+          FEATURE_BRANCH_NAME: ${{ github.event.ref }}
+        run: |
+          sam delete \
+            --stack-name ${{matrix.to-delete}} \
+            --region ${{vars.REGION}} \
+            --no-prompts
           
   common:
     needs: pre-processor
