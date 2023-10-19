@@ -77,7 +77,7 @@ jobs:
     - name: set profile
       id: set-profile 
       run: |
-        profile=$(echo "[\"testing\"]")
+        profile=$(echo "[\"testing\",\"production\"]")
         echo "profile=${profile}" >> $GITHUB_OUTPUT      
         echo "profile = $profile"
           
