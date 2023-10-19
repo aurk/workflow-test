@@ -137,7 +137,7 @@ jobs:
       matrix:
         to-delete: ${{fromJson(needs.pre-processor.outputs.stacks-to-delete)}}
     runs-on: ubuntu-latest
-    environment: ${{fromJson(needs.pre-processor.outputs.profile)}}
+    environment: feature
     steps:
       - name: test
         run:  |

@@ -11,7 +11,6 @@ on:
 jobs:
   pre-processor:
     runs-on: ubuntu-latest
-    environment: testing
     
     outputs:
       output_folder_names: ${{ steps.set-root-folders.outputs.output_folder_names }}
@@ -72,20 +71,15 @@ jobs:
     - name: set stack initial
       id: stack-name
       run: |
-
-        message=$(echo "\"${{ github.event.head_commit.message }}\"")
-        message=${message#\"}
-        echo "message is $message"
-        stack_name=$(echo "$(echo "$message" | sed 's/:.*//')-$type")
+        stack_name=main
         echo "stack-name=${stack_name}" >> $GITHUB_OUTPUT
-        echo "stack_name = $stack_name"
+        
     - name: set profile
-        id: set-profile 
-        run: |
-          profile=$(echo "[\"testing\"]")
-          echo "profile=${profile}" >> $GITHUB_OUTPUT
-          
-          echo "profile = $profile"
+      id: set-profile 
+      run: |
+        profile=$(echo "[\"testing\"]")
+        echo "profile=${profile}" >> $GITHUB_OUTPUT      
+        echo "profile = $profile"
           
   common:
     needs: pre-processor
