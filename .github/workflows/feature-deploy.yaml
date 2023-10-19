@@ -115,7 +115,7 @@ jobs:
           echo "message = $message"
           stack_initial=$(echo "$(echo "$message" | sed 's/:.*//')")
           echo "stack_initial = $stack_initial"
-          stacks=$(aws cloudformation describe-stacks --query "Stacks[?starts_with(StackName, '$stack_inital')].[StackName]" --output text | tr "\n" ",")
+          stacks=$(aws cloudformation describe-stacks --query "Stacks[?starts_with(StackName, '$stack_initial')].[StackName]" --output text | tr "\n" ",")
           echo "stacks = $stacks"
           stacks=$(echo "$(echo "[\"$stacks" |   sed 's/,$//' | sed 's/,/\",\"/g')\"]")
           echo "stacks=${stacks}" >> $GITHUB_OUTPUT
