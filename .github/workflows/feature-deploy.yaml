@@ -26,7 +26,6 @@ jobs:
       should-execute: ${{ steps.should-execute-lambda.outputs.should-execute }}
       stacks-to-delete: ${{ steps.stacks-to-delete.outputs.stacks }}
       stack-name: ${{ steps.stack-name.outputs.stack-name }}
-      branch-to-delete-initial: ${{ steps.branch-to-delete-initial.outputs.branch-to-delete-initial }}
       profile: ${{ steps.set-profile.outputs.profile }}
       
     steps:
@@ -118,16 +117,6 @@ jobs:
           echo "stacks=${stacks}" >> $GITHUB_OUTPUT
           echo "stacks = $stacks"
 
-      - name: branch to delete inital
-        id: branch-to-delete-initial 
-        if: github.event_name == 'pull_request'
-        run: |
-          message=$(echo "\"${{ github.event.pull_request.title }}\"")
-          branch_to_delete_initial=$(echo "$(echo "$message" | sed 's/:.*//'):")
-          echo "branch-to-delete-initial=${branch_to_delete_initial}" >> $GITHUB_OUTPUT
-          
-          echo "branch_to_delete_initial = $branch_to_delete_initial"
-
       - name: set profile
         id: set-profile 
         run: |
@@ -136,11 +125,7 @@ jobs:
           
           echo "profile = $profile"
 
-      - name: print github event
-        run: |
-          echo "event = ${{github.event_name}}"
-          echo "action = ${{github.event.action}}"
-
+      
 
 
 
@@ -158,7 +143,8 @@ jobs:
         run:  |
           echo "${{matrix.to-delete}}"
           echo "${{needs.pre-processor.outputs.profile}}"
-          echo "${{github.event_name}}"
+          echo "${{ vars.REGION }}"
+          echo "${{ vars.PIPELINE_EXECUTION_ROLE }}"
 
       - uses: actions/checkout@v3
       - uses: aws-actions/setup-sam@v2

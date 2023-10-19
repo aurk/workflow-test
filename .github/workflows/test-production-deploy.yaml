@@ -9,72 +9,95 @@ on:
 
 
 jobs:
-  fetch-changed-files:
+  pre-processor:
     runs-on: ubuntu-latest
     environment: testing
     
     outputs:
-      output_folder_names: ${{ steps.root-folders.outputs.output_folder_names }}
-      is_common: ${{ steps.root-folders.outputs.is_common }}
-      matrix_type: ${{ steps.root-folders.outputs.matrix_type }}
-      should-execute: ${{ steps.root-folders.outputs.should-execute }}
+      output_folder_names: ${{ steps.set-root-folders.outputs.output_folder_names }}
+      is_common: ${{ steps.common-layer-change.outputs.is_common }}
+      matrix_type: ${{ steps.matrix-common-layer.outputs.matrix_type }}
+      should-execute: ${{ steps.should-execute-lambda.outputs.should-execute }}
+      stack-name: ${{ steps.stack-name.outputs.stack-name }}
+
       
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
 
-      - uses: tj-actions/changed-files@v39
-        id: changed-files
-        with:
-          separator: ","
+    - uses: tj-actions/changed-files@v39
+      id: changed-files
+      with:
+        separator: ","
+    - name: find all changed files
+      id: set-root-folders
+      run: |
+        root_folder_names=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr "," "\n" | cut -d "/" -f 1  | sort -u | tr "\n" ",")
+        root_folder_names=($(echo "$root_folder_names" | sed  "s/common//" |  sed 's/,,/,/g'  | sed 's/,$//'))
+        root_folder_names=$(echo "$root_folder_names" | awk -F, -v OFS=', ' '{for(i=1; i<=NF; i++) $i = "\"" $i "\""}1')
+        root_folder_names=$(echo ["$root_folder_names"])
+        echo "output_folder_names=${root_folder_names}" >> $GITHUB_OUTPUT
+        
+    - name: is common layers changes
+      id: common-layer-change
+      run: |
+        root_folder_names=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr "," "\n" | cut -d "/" -f 1  | sort -u | tr "\n" ",")
+        is_common=no
+        case "${root_folder_names[@]}" in  *"common"*) is_common=present ;; esac
+        echo "is_common=${is_common}" >> $GITHUB_OUTPUT
+    
+    - name: set matrix for common layer
+      id: matrix-common-layer
+      run: |
+        #setting matrix type to common because If we change common-layers. We want it should execute first.
+        matrix_type=$(echo "[\"common\"]")
+        echo "matrix_type=${matrix_type}" >> $GITHUB_OUTPUT
+        echo "matrix_type = $matrix_type"
 
-      - name: Print all changed files
-        id: root-folders
-        run: |
-          root_folder_names=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr "," "\n" | cut -d "/" -f 1  | sort -u | tr "\n" ",")
-          
-          is_common=no
-          case "${root_folder_names[@]}" in  *"common"*) is_common=present ;; esac
-          echo "is_common=${is_common}" >> $GITHUB_OUTPUT
-          
-          #setting matrix type to common because If we change common-layers. We want it should execute first.
-          matrix_type=$(echo "[\"common\"]")
-          echo "matrix_type=${matrix_type}" >> $GITHUB_OUTPUT
-          
-          root_folder_names=($(echo "$root_folder_names" | sed  "s/common//" |  sed 's/,,/,/g'  | sed 's/,$//'))
-          
-          #Checking lambda should run or not
-          should_execute_lambda=present
-          if [[ -z "$root_folder_names" ]]; then
-            should_execute_lambda=no
-          fi
-          echo "should-execute = $should_execute_lambda"
-          echo "should-execute=${should_execute_lambda}" >> $GITHUB_OUTPUT
 
-          # setting output_folder_names. 
-          root_folder_names=$(echo "$root_folder_names" | awk -F, -v OFS=', ' '{for(i=1; i<=NF; i++) $i = "\"" $i "\""}1')
-          root_folder_names=$(echo ["$root_folder_names"])
-          echo "output_folder_names=${root_folder_names}" >> $GITHUB_OUTPUT
-          
-  # common:
-  #   needs: fetch-changed-files
-  #   uses: ./.github/workflows/deploy.yml
-  #   with:
-  #     should-execute: ${{needs.fetch-changed-files.outputs.is_common}}
-  #     matrix-type: ${{needs.fetch-changed-files.outputs.matrix_type}}
+    - name: should execute lambda
+      id: should-execute-lambda
+      run: |
+        root_folder_names=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr "," "\n" | cut -d "/" -f 1  | sort -u | tr "\n" ",")
+        root_folder_names=($(echo "$root_folder_names" | sed  "s/.github//" | sed  "s/common//" |  sed 's/,,/,/g'  | sed 's/,$//'))
+        should_execute_lambda=present
+        if [[ -z "$root_folder_names" ]]; then
+          should_execute_lambda=no
+        fi
+        echo "should-execute = $should_execute_lambda"
+        echo "should-execute=${should_execute_lambda}" >> $GITHUB_OUTPUT
+        echo "should_execute_lambda = $should_execute_lambda"
       
-  #   secrets:
-  #     access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
-  #     secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
+    - name: set stack initial
+      id: stack-name
+      run: |
+
+        message=$(echo "\"${{ github.event.head_commit.message }}\"")
+        message=${message#\"}
+        echo "message is $message"
+        stack_name=$(echo "$(echo "$message" | sed 's/:.*//')-$type")
+        echo "stack-name=${stack_name}" >> $GITHUB_OUTPUT
+        echo "stack_name = $stack_name"
+          
+  common:
+    needs: pre-processor
+    uses: ./.github/workflows/deploy.yml
+    with:
+      should-execute: ${{needs.pre-processor.outputs.is_common}}
+      matrix-type: ${{needs.pre-processor.outputs.matrix_type}}
+      
+    secrets:
+      access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
+      secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
  
-  # lambda:
-  #   if:  always() && !failure() && !cancelled() # when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok).
-  #   needs: [common,fetch-changed-files]
-  #   uses: ./.github/workflows/deploy.yml
-  #   with:
-  #     should-execute: ${{needs.fetch-changed-files.outputs.should-execute}}
-  #     matrix-type: ${{needs.fetch-changed-files.outputs.output_folder_names}}
-  #   secrets:
-  #     access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
-  #     secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
+  lambda:
+    if:  always() && !failure() && !cancelled() # when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok).
+    needs: [common,pre-processor]
+    uses: ./.github/workflows/deploy.yml
+    with:
+      should-execute: ${{needs.pre-processor.outputs.should-execute}}
+      matrix-type: ${{needs.pre-processor.outputs.output_folder_names}}
+    secrets:
+      access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
+      secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
