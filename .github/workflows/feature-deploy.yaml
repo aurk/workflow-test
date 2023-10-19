@@ -140,6 +140,7 @@ jobs:
 
   delete-feature:
     if: github.event_name == 'delete'
+    needs: pre-processor
     strategy:
       matrix:
         to-delete: ${{needs.pre-processor.outputs.stacks-to-delete}}
