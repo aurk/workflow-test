@@ -89,6 +89,20 @@ jobs:
           echo "stack-name=${stack_name}" >> $GITHUB_OUTPUT
           echo "stack_name = $stack_name"
 
+      - name: install aws cli
+        if: matrix.type != 'common'
+        id: install-aws-cli
+        uses: unfor19/install-aws-cli-action@v1
+        with:
+          verbose: true
+
+      - name: authenticate aws cli
+        if: matrix.type != 'common'
+        run: |
+          aws configure set aws_access_key_id ${{secrets.AWS_ACCESS_KEY_ID }}
+          aws configure set aws_secret_access_key ${{secrets.AWS_SECRET_ACCESS_KEY }}
+
+
       - name: set stacks for deleting purpose
         id: stacks-to-delete
         run: |
@@ -116,6 +130,10 @@ jobs:
           
           echo "profile = $profile"
 
+      - name: print github event
+        run: |
+          echo "event = ${{github.event_name}}"
+
 
 
 
@@ -128,55 +146,61 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{needs.pre-processor.outputs.profile}}
     steps:
-      - uses: actions/checkout@v3
-      - uses: aws-actions/setup-sam@v2
-        with:
-          use-installer: true
+      - name: test
+        run:  |
+          echo "${{matrix.to-delete}}"
+          echo "${{needs.pre-processor.outputs.profile}}"
+          echo "${{github.event_name}}"
 
-      - name: Assume the testing pipeline user role
-        uses: aws-actions/configure-aws-credentials@v1-node16
-        with:
-          aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ vars.REGION }}
-          role-to-assume: ${{ vars.PIPELINE_EXECUTION_ROLE }}
-          role-session-name: testing-packaging
-          role-duration-seconds: 3600
-          role-skip-session-tagging: true
+      # - uses: actions/checkout@v3
+      # - uses: aws-actions/setup-sam@v2
+      #   with:
+      #     use-installer: true
 
-      - name: Delete feature branch stack
-        env:
-          FEATURE_BRANCH_NAME: ${{ github.event.ref }}
-        run: |
-          sam delete \
-            --stack-name ${{matrix.to-delete}} \
-            --region ${{vars.REGION}} \
-            --no-prompts
+      # - name: Assume the testing pipeline user role
+      #   uses: aws-actions/configure-aws-credentials@v1-node16
+      #   with:
+      #     aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ vars.REGION }}
+      #     role-to-assume: ${{ vars.PIPELINE_EXECUTION_ROLE }}
+      #     role-session-name: testing-packaging
+      #     role-duration-seconds: 3600
+      #     role-skip-session-tagging: true
+
+      # - name: Delete feature branch stack
+      #   env:
+      #     FEATURE_BRANCH_NAME: ${{ github.event.ref }}
+      #   run: |
+      #     sam delete \
+      #       --stack-name ${{matrix.to-delete}} \
+      #       --region ${{vars.REGION}} \
+      #       --no-prompts
           
 
 
-  common:
-    needs: pre-processor
-    uses: ./.github/workflows/deploy.yml
-    with:
-      should-execute: ${{needs.pre-processor.outputs.is_common}}
-      matrix-type: ${{needs.pre-processor.outputs.matrix_type}}
-      stack-initial: ${{needs.pre-processor.outputs.stack-name}}
-      profile: "[\"feature\"]"
+  # common:
+  #   needs: pre-processor
+  #   uses: ./.github/workflows/deploy.yml
+  #   with:
+  #     should-execute: ${{needs.pre-processor.outputs.is_common}}
+  #     matrix-type: ${{needs.pre-processor.outputs.matrix_type}}
+  #     stack-initial: ${{needs.pre-processor.outputs.stack-name}}
+  #     profile: "[\"feature\"]"
       
-    secrets:
-      access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
-      secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
+  #   secrets:
+  #     access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
+  #     secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
  
-  lambda:
-    if:  always() && !failure() && !cancelled() # when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok).
-    needs: [common,pre-processor]
-    uses: ./.github/workflows/deploy.yml
-    with:
-      should-execute: ${{needs.pre-processor.outputs.should-execute}}
-      matrix-type: ${{needs.pre-processor.outputs.output_folder_names}}
-      stack-initial: ${{needs.pre-processor.outputs.stack-name}}
-      profile: ${{needs.pre-processor.outputs.profile}}
-    secrets:
-      access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
-      secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
+  # lambda:
+  #   if:  always() && !failure() && !cancelled() # when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok).
+  #   needs: [common,pre-processor]
+  #   uses: ./.github/workflows/deploy.yml
+  #   with:
+  #     should-execute: ${{needs.pre-processor.outputs.should-execute}}
+  #     matrix-type: ${{needs.pre-processor.outputs.output_folder_names}}
+  #     stack-initial: ${{needs.pre-processor.outputs.stack-name}}
+  #     profile: ${{needs.pre-processor.outputs.profile}}
+  #   secrets:
+  #     access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
+  #     secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
