@@ -112,6 +112,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Set Commit Message Output
+        id: commit_message
         if: github.event_name == 'pull_request'
         run: echo "::set-output name=commit_message::$(echo ${{ steps.commit.outputs.data }} | jq -r '.[0].commit.message')"
       
