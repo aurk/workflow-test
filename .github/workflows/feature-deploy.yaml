@@ -90,25 +90,29 @@ jobs:
           echo "stack_name = $stack_name"
 
       - name: install aws cli
-        if: matrix.type != 'common'
+        if: github.event_name == 'pull_request'
         id: install-aws-cli
         uses: unfor19/install-aws-cli-action@v1
         with:
           verbose: true
 
       - name: authenticate aws cli
-        if: matrix.type != 'common'
+        if: github.event_name == 'pull_request'
         run: |
           aws configure set aws_access_key_id ${{secrets.AWS_ACCESS_KEY_ID }}
           aws configure set aws_secret_access_key ${{secrets.AWS_SECRET_ACCESS_KEY }}
 
 
       - name: set stacks for deleting purpose
+        if: github.event_name == 'pull_request'
         id: stacks-to-delete
         run: |
           message=$(echo "\"${{ github.event.head_commit.message }}\"")
+          echo "message = $message"
           stack_initial=$(echo "$(echo "$message" | sed 's/:.*//')")
+          echo "stack_initial = $stack_initial"
           stacks=$(aws cloudformation describe-stacks --query "Stacks[?starts_with(StackName, '$stack_inital')].[StackName]" --output text | tr "\n" ",")
+          echo "stacks = $stacks"
           stacks=$(echo "$(echo "[\"$stacks" |   sed 's/,$//' | sed 's/,/\",\"/g')\"]")
           echo "stacks=${stacks}" >> $GITHUB_OUTPUT
           echo "stacks = $stacks"
@@ -184,6 +188,7 @@ jobs:
   common:
     needs: pre-processor
     uses: ./.github/workflows/deploy.yml
+    if: github.event_name == 'push'
     with:
       should-execute: ${{needs.pre-processor.outputs.is_common}}
       matrix-type: ${{needs.pre-processor.outputs.matrix_type}}
@@ -195,7 +200,7 @@ jobs:
       secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
  
   lambda:
-    if:  always() && !failure() && !cancelled() # when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok).
+    if:  always() && !failure() && !cancelled() && github.event_name == 'push' # when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok).
     needs: [common,pre-processor]
     uses: ./.github/workflows/deploy.yml
     with:
