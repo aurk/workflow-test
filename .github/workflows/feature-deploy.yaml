@@ -102,26 +102,11 @@ jobs:
           aws configure set aws_access_key_id ${{secrets.AWS_ACCESS_KEY_ID }}
           aws configure set aws_secret_access_key ${{secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Get Commit Message
-        if: github.event_name == 'pull_request'
-        id: commit
-        uses: octokit/request-action@v2.x
-        with:
-          route: GET /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/commits
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Set Commit Message Output
-        id: commit_message
-        if: github.event_name == 'pull_request'
-        run: echo "::set-output name=commit_message::$(echo ${{ steps.commit.outputs.data }} | jq -r '.[0].commit.message')"
-      
-
       - name: set stacks for deleting purpose
         if: github.event_name == 'pull_request'
         id: stacks-to-delete
         run: |
-          message=$(echo "\"${{ steps.commit_message.outputs.commit_message  }}\"")
+          message=$(echo "\"${{ github.event.pull_request.head.sha }}\"")
           echo "message = $message"
           stack_initial=$(echo "$(echo "$message" | sed 's/:.*//')")
           echo "stack_initial = $stack_initial"
@@ -133,8 +118,9 @@ jobs:
 
       - name: branch to delete inital
         id: branch-to-delete-initial 
+        if: github.event_name == 'pull_request'
         run: |
-          message=$(echo "\"${{ github.event.head_commit.message }}\"")
+          message=$(echo "\"${{ github.event.pull_request.head.sha }}\"")
           branch_to_delete_initial=$(echo "$(echo "$message" | sed 's/:.*//'):")
           echo "branch-to-delete-initial=${branch_to_delete_initial}" >> $GITHUB_OUTPUT
           
