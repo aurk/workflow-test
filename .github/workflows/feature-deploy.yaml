@@ -181,28 +181,28 @@ jobs:
           
 
 
-  # common:
-  #   needs: pre-processor
-  #   uses: ./.github/workflows/deploy.yml
-  #   with:
-  #     should-execute: ${{needs.pre-processor.outputs.is_common}}
-  #     matrix-type: ${{needs.pre-processor.outputs.matrix_type}}
-  #     stack-initial: ${{needs.pre-processor.outputs.stack-name}}
-  #     profile: "[\"feature\"]"
+  common:
+    needs: pre-processor
+    uses: ./.github/workflows/deploy.yml
+    with:
+      should-execute: ${{needs.pre-processor.outputs.is_common}}
+      matrix-type: ${{needs.pre-processor.outputs.matrix_type}}
+      stack-initial: ${{needs.pre-processor.outputs.stack-name}}
+      profile: "[\"feature\"]"
       
-  #   secrets:
-  #     access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
-  #     secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
+    secrets:
+      access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
+      secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
  
-  # lambda:
-  #   if:  always() && !failure() && !cancelled() # when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok).
-  #   needs: [common,pre-processor]
-  #   uses: ./.github/workflows/deploy.yml
-  #   with:
-  #     should-execute: ${{needs.pre-processor.outputs.should-execute}}
-  #     matrix-type: ${{needs.pre-processor.outputs.output_folder_names}}
-  #     stack-initial: ${{needs.pre-processor.outputs.stack-name}}
-  #     profile: ${{needs.pre-processor.outputs.profile}}
-  #   secrets:
-  #     access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
-  #     secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
+  lambda:
+    if:  always() && !failure() && !cancelled() # when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok).
+    needs: [common,pre-processor]
+    uses: ./.github/workflows/deploy.yml
+    with:
+      should-execute: ${{needs.pre-processor.outputs.should-execute}}
+      matrix-type: ${{needs.pre-processor.outputs.output_folder_names}}
+      stack-initial: ${{needs.pre-processor.outputs.stack-name}}
+      profile: ${{needs.pre-processor.outputs.profile}}
+    secrets:
+      access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
+      secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
