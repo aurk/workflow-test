@@ -102,20 +102,18 @@ jobs:
           aws configure set aws_access_key_id ${{secrets.AWS_ACCESS_KEY_ID }}
           aws configure set aws_secret_access_key ${{secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Get Commit Message
-        if: github.event_name == 'pull_request'
-        id: commit
-        uses: octokit/request-action@v2.x
+      - name: Get latest commit message
+        uses: octokit/rest-action@v2.x
         with:
-          route: GET /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/commits
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Set Commit Message Output
+          route: GET /repos/${{ github.repository }}/commits/${{ github.event.pull_request.head.sha }}
+          method: GET
+        id: get-latest-commit-message
+
+      - name: Set commit message output
         id: commit_message
-        if: github.event_name == 'pull_request'
-        run: echo "::set-output name=commit_message::$(echo ${{ steps.commit.outputs.data }} | jq -r '.[0].commit.message')"
-      
+        run: echo "::set-output name=commit_message::$(jq -r '.commit.message' ${{ steps.get-latest-commit-message.outputs.body }})"
+
+
 
       - name: set stacks for deleting purpose
         if: github.event_name == 'pull_request'
