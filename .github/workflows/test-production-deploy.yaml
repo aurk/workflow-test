@@ -19,7 +19,7 @@ jobs:
       matrix_type: ${{ steps.matrix-common-layer.outputs.matrix_type }}
       should-execute: ${{ steps.should-execute-lambda.outputs.should-execute }}
       stack-name: ${{ steps.stack-name.outputs.stack-name }}
-
+      profile: ${{ steps.set-profile.outputs.profile }}
       
     steps:
     - uses: actions/checkout@v3
@@ -79,6 +79,13 @@ jobs:
         stack_name=$(echo "$(echo "$message" | sed 's/:.*//')-$type")
         echo "stack-name=${stack_name}" >> $GITHUB_OUTPUT
         echo "stack_name = $stack_name"
+    - name: set profile
+        id: set-profile 
+        run: |
+          profile=$(echo "[\"testing\"]")
+          echo "profile=${profile}" >> $GITHUB_OUTPUT
+          
+          echo "profile = $profile"
           
   common:
     needs: pre-processor
@@ -86,6 +93,8 @@ jobs:
     with:
       should-execute: ${{needs.pre-processor.outputs.is_common}}
       matrix-type: ${{needs.pre-processor.outputs.matrix_type}}
+      stack-initial: ${{needs.pre-processor.outputs.stack-name}}
+      profile: ${{needs.pre-processor.outputs.profile}}
       
     secrets:
       access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
@@ -98,6 +107,8 @@ jobs:
     with:
       should-execute: ${{needs.pre-processor.outputs.should-execute}}
       matrix-type: ${{needs.pre-processor.outputs.output_folder_names}}
+      stack-initial: ${{needs.pre-processor.outputs.stack-name}}
+      profile: ${{needs.pre-processor.outputs.profile}}
     secrets:
       access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
       secret-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
