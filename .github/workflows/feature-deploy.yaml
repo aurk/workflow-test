@@ -137,7 +137,7 @@ jobs:
       matrix:
         to-delete: ${{fromJson(needs.pre-processor.outputs.stacks-to-delete)}}
     runs-on: ubuntu-latest
-    environment: ${{needs.pre-processor.outputs.profile}}
+    environment: ${{fromJson(needs.pre-processor.outputs.profile)}}
     steps:
       - name: test
         run:  |
@@ -179,7 +179,7 @@ jobs:
       should-execute: ${{needs.pre-processor.outputs.is_common}}
       matrix-type: ${{needs.pre-processor.outputs.matrix_type}}
       stack-initial: ${{needs.pre-processor.outputs.stack-name}}
-      profile: "[\"feature\"]"
+      profile: ${{needs.pre-processor.outputs.profile}}
       
     secrets:
       access-key: ${{secrets.AWS_ACCESS_KEY_ID }}
