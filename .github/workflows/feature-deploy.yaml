@@ -150,7 +150,7 @@ jobs:
     needs: pre-processor
     strategy:
       matrix:
-        to-delete: ${{fromJson(needs.pre-processor.outputs.stacks-to-delete))}}
+        to-delete: ${{fromJson(needs.pre-processor.outputs.stacks-to-delete)}}
     runs-on: ubuntu-latest
     environment: ${{needs.pre-processor.outputs.profile}}
     steps:
